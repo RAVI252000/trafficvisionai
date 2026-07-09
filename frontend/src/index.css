@@ -1,0 +1,117 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-tv-bg: #0f172a;
+  --color-tv-surface: #1e293b;
+  --color-tv-primary: #2563eb;
+  --color-tv-emerald: #10b981;
+  --color-tv-orange: #f59e0b;
+  --color-tv-text: #f8fafc;
+  --color-tv-muted: #94a3b8;
+  --color-tv-border: rgba(255, 255, 255, 0.08);
+
+  --font-sans: 'Inter', system-ui, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-height: 100svh;
+  font-family: var(--font-sans);
+  background-color: var(--color-tv-bg);
+  color: var(--color-tv-text);
+}
+
+#root {
+  min-height: 100svh;
+}
+
+/* Subtle animated grid overlay for enterprise feel */
+.tv-grid-bg {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* Glass card utility */
+.tv-glass {
+  background: rgba(30, 41, 59, 0.72);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+    0 24px 48px -12px rgba(0, 0, 0, 0.45),
+    0 0 80px -20px rgba(37, 99, 235, 0.15);
+}
+
+/* Focus ring for keyboard navigation */
+.tv-focus-ring:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+/* Illustration traffic path animation */
+@keyframes traffic-flow {
+  0% {
+    stroke-dashoffset: 200;
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0.3;
+  }
+}
+
+@keyframes particle-float {
+  0%,
+  100% {
+    transform: translateY(0) translateX(0);
+    opacity: 0.2;
+  }
+  50% {
+    transform: translateY(-12px) translateX(4px);
+    opacity: 0.6;
+  }
+}
+
+@keyframes line-pulse {
+  0%,
+  100% {
+    opacity: 0.08;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
+@keyframes vehicle-move {
+  0% {
+    offset-distance: 0%;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    offset-distance: 100%;
+    opacity: 0;
+  }
+}
