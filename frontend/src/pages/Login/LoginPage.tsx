@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
-import { AnimatedBackground } from '../components/login/AnimatedBackground'
-import { SmartCityIllustration } from '../components/login/SmartCityIllustration'
-import { LoginCard } from '../components/login/LoginCard'
+import { AnimatedBackground } from '../../components/login/AnimatedBackground'
+import { SmartCityIllustration } from '../../components/login/SmartCityIllustration'
+import { LoginCard } from '../../components/login/LoginCard'
 
 /**
  * Split-screen login page for TrafficVision AI.

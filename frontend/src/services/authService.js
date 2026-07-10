@@ -1,45 +1,34 @@
-import { MOCK_USERS, DEMO_USER_EMAIL } from '../data/mockUsers'
+import { api } from './api'
 import { STORAGE_KEY } from '../utils/constants'
 
-const NETWORK_DELAY = 900
-
-/** Strip password before returning user to the app layer */
-function sanitizeUser(user) {
-  const { password: _pw, ...safe } = user
-  return safe
-}
-
-function delay(ms = NETWORK_DELAY) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
-}
-
-/**
- * Mock authentication service.
- * Replace method bodies with Axios calls when the backend is ready.
- */
 export const authService = {
   async login(email, password) {
-    await delay()
-
-    const user = MOCK_USERS.find(
-      (u) => u.email.toLowerCase() === email.toLowerCase() && u.password === password,
-    )
-
-    if (!user) {
-      throw new Error('Invalid email or password')
+    try {
+      const response = await api.post('/api/auth/login', { email, password })
+      const { access_token, user: dbUser } = response.data
+      
+      // Format backend user to frontend expectations, and include token
+      const sessionUser = {
+        id: dbUser.id,
+        name: dbUser.full_name,
+        email: dbUser.email,
+        role: dbUser.role,
+        avatar: null,
+        token: access_token
+      }
+      
+      return sessionUser
+    } catch (error) {
+      if (error.response && error.response.data && error.response.data.detail) {
+        throw new Error(error.response.data.detail)
+      }
+      throw new Error('Connection to authentication server failed')
     }
-
-    const session = sanitizeUser(user)
-    return session
   },
 
   async loginAsDemo() {
-    await delay(600)
-
-    const user = MOCK_USERS.find((u) => u.email === DEMO_USER_EMAIL)
-    if (!user) throw new Error('Demo user not configured')
-
-    return sanitizeUser(user)
+    // Authenticate using the seeded traffic operator credentials
+    return this.login('operator@trafficvision.ai', 'Operator@123')
   },
 
   saveSession(user, remember = false) {
@@ -65,7 +54,13 @@ export const authService = {
   },
 
   async logout() {
-    await delay(300)
-    this.clearSession()
+    try {
+      await api.post('/api/auth/logout')
+    } catch (e) {
+      console.warn('Backend logout failed or not supported:', e)
+    } finally {
+      this.clearSession()
+    }
   },
 }
+export default authService

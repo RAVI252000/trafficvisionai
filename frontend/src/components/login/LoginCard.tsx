@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from 'react'
 import { motion } from 'framer-motion'
 import { Mail, Lock, Eye, EyeOff, Activity, PlayCircle } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../../hooks/useAuth'
 import { Input, type InputState } from '../ui/Input'
 import { Button } from '../ui/Button'
 import { Checkbox } from '../ui/Checkbox'
@@ -49,6 +51,9 @@ function validateForm(email: string, password: string): FieldValidation {
  * and demo mode — frontend only, no authentication backend.
  */
 export function LoginCard() {
+  const { login, loginAsDemo } = useAuth()
+  const navigate = useNavigate()
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -57,10 +62,12 @@ export function LoginCard() {
   const [isDemoLoading, setIsDemoLoading] = useState(false)
   const [validation, setValidation] = useState<FieldValidation>(initialValidation)
   const [submitted, setSubmitted] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setSubmitted(true)
+    setError(null)
 
     const result = validateForm(email, password)
     setValidation(result)
@@ -68,18 +75,27 @@ export function LoginCard() {
     if (result.email === 'error' || result.password === 'error') return
 
     setIsLoading(true)
-    // Simulate network delay — no actual API call
-    await new Promise((resolve) => setTimeout(resolve, 1800))
-    setIsLoading(false)
+    try {
+      await login(email, password, rememberMe)
+      navigate('/dashboard')
+    } catch (err: any) {
+      setError(err?.message || 'Invalid email or password')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleDemo = async () => {
     setIsDemoLoading(true)
-    setEmail('demo@trafficvision.ai')
-    setPassword('demo12345')
-    setValidation({ email: 'success', password: 'success' })
-    await new Promise((resolve) => setTimeout(resolve, 1200))
-    setIsDemoLoading(false)
+    setError(null)
+    try {
+      await loginAsDemo()
+      navigate('/dashboard')
+    } catch (err: any) {
+      setError(err?.message || 'Demo login failed')
+    } finally {
+      setIsDemoLoading(false)
+    }
   }
 
   const getEmailState = (): InputState => {
@@ -118,6 +134,16 @@ export function LoginCard() {
           AI-Powered Smart Traffic Prediction &amp; Congestion Management
         </p>
       </div>
+
+      {error && (
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-5 rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-center text-xs font-semibold text-red-400"
+        >
+          {error}
+        </motion.div>
+      )}
 
       {/* Login form */}
       <form onSubmit={handleSubmit} className="space-y-5" noValidate>
