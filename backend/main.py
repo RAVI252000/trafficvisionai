@@ -5,6 +5,10 @@ from api.auth import router as auth_router
 from api.users import router as users_router
 from api.traffic import router as traffic_router
 from api.congestion import router as congestion_router
+from api.prediction import router as prediction_router
+from api.v1_reports import router as reports_router
+from api.v1_forecast import router as forecast_router
+from api.v1_routes import router as routes_router
 
 app = FastAPI(
     title="TrafficVision AI Backend",
@@ -31,6 +35,10 @@ app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(traffic_router)
 app.include_router(congestion_router)
+app.include_router(prediction_router)
+app.include_router(reports_router)
+app.include_router(forecast_router)
+app.include_router(routes_router)
 
 @app.get("/")
 def read_root():
