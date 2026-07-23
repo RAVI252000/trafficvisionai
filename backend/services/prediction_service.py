@@ -163,5 +163,68 @@ class PredictionService:
             "forecast": forecast
         }
 
+    def get_monitoring_status_batch(self):
+        if self.model is None or not self.road_metadata:
+            self.load_artifacts()
+            
+        if self.model is None or not self.road_metadata:
+            return []
+
+        now = datetime.now()
+        hour = now.hour
+        day_of_week = now.weekday()
+        month = now.month
+        is_weekend = 1 if day_of_week in [5, 6] else 0
+        direction_code = 2
+
+        roads = list(self.road_metadata.keys())
+        rows = []
+        for r in roads:
+            meta = self.road_metadata[r]
+            rows.append({
+                "hour": hour,
+                "day_of_week": day_of_week,
+                "month": month,
+                "is_weekend": is_weekend,
+                "latitude": meta.get("latitude", 51.5074),
+                "longitude": meta.get("longitude", -0.1278),
+                "road_type_code": meta.get("road_type_code", 1),
+                "direction_code": direction_code
+            })
+
+        batch_df = pd.DataFrame(rows)
+        preds = self.model.predict(batch_df)
+
+        status_list = []
+        for i, road_name in enumerate(roads):
+            meta = self.road_metadata[road_name]
+            capacity = meta.get("capacity", 1500.0)
+            road_type = meta.get("road_type", "Major")
+            pred_volume = float(max(0.0, preds[i]))
+            congestion_pct = min(100.0, (pred_volume / capacity) * 100.0)
+
+            if congestion_pct < 30.0:
+                status = "CLEAR"
+            elif congestion_pct < 60.0:
+                status = "MODERATE"
+            elif congestion_pct < 85.0:
+                status = "HEAVY"
+            else:
+                status = "BLOCKED"
+
+            status_list.append({
+                "road_name": road_name,
+                "road_type": road_type,
+                "latitude": meta.get("latitude", 51.5074),
+                "longitude": meta.get("longitude", -0.1278),
+                "congestion_index": int(round(congestion_pct)),
+                "congestion_status": status,
+                "predicted_volume": int(round(pred_volume)),
+                "confidence": 0.88
+            })
+
+        return status_list
+
 # Singleton instance
 prediction_service = PredictionService()
+

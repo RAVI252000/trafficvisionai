@@ -136,28 +136,6 @@ class ForecastService:
         }
 
     def get_all_roads_monitoring_status(self):
-        metadata = prediction_service.road_metadata
-        current_hour = datetime.now().hour
-        current_date = datetime.now().strftime("%Y-%m-%d")
-        
-        status_list = []
-        for road_name in metadata.keys():
-            try:
-                res = prediction_service.predict_hourly_forecast(road_name, current_date)
-                active = res["forecast"][current_hour]
-                status_list.append({
-                    "road_name": road_name,
-                    "road_type": res["road_type"],
-                    "latitude": res["latitude"],
-                    "longitude": res["longitude"],
-                    "congestion_index": active["congestion_index"],
-                    "congestion_status": active["congestion_status"],
-                    "predicted_volume": active["predicted_volume"],
-                    "confidence": res["confidence"]
-                })
-            except Exception as e:
-                print(f"Skipping road {road_name} in monitoring status: {e}")
-                
-        return status_list
+        return prediction_service.get_monitoring_status_batch()
 
 forecast_service = ForecastService()

@@ -108,57 +108,61 @@ export function DashboardPage() {
     try {
       // 1. Fetch live checkpoints status from new endpoint
       const monitoringData = await predictionService.getMonitoringStatus()
-      setCheckpoints(monitoringData)
+      if (Array.isArray(monitoringData)) {
+        setCheckpoints(monitoringData)
 
-      // Calculate aggregate stats
-      const total = monitoringData.length
-      const hotspots = monitoringData.filter((l: any) => l.congestion_index >= 60).length
-      const avgCong = total > 0
-        ? Math.round(monitoringData.reduce((sum: number, l: any) => sum + l.congestion_index, 0) / total)
-        : 35
-      
-      let statusLabel = 'Stable'
-      if (hotspots > 3) statusLabel = 'Heavy Congestion'
-      else if (hotspots > 0) statusLabel = 'Moderate Traffic'
-
-      setStats({
-        totalRoads: total,
-        avgCongestion: avgCong,
-        hotspotsCount: hotspots,
-        systemStatus: statusLabel,
-        activeAlerts: hotspots + 2
-      })
-
-      if (monitoringData.length > 0) {
-        // Average coordinates to center map preview
-        const avgLat = monitoringData.reduce((sum: number, loc: any) => sum + loc.latitude, 0) / total
-        const avgLng = monitoringData.reduce((sum: number, loc: any) => sum + loc.longitude, 0) / total
-        setMapCenter([avgLat, avgLng])
-      }
-
-      // 2. Load 24h hourly forecast trend for a default road (like A1 or first road)
-      const defaultRoad = monitoringData.find((l: any) => l.road_name === 'A1')?.road_name || monitoringData[0]?.road_name
-      if (defaultRoad) {
-        const today = new Date().toISOString().split('T')[0]
-        const forecastRes = await predictionService.getForecast(defaultRoad, today)
+        // Calculate aggregate stats
+        const total = monitoringData.length
+        const hotspots = monitoringData.filter((l: any) => l.congestion_index >= 60).length
+        const avgCong = total > 0
+          ? Math.round(monitoringData.reduce((sum: number, l: any) => sum + l.congestion_index, 0) / total)
+          : 35
         
-        setForecast({
-          confidence: forecastRes.confidence,
-          peakHour: forecastRes.peak_hour,
-          delayMinutes: forecastRes.estimated_delay_minutes,
-          defaultRoadName: defaultRoad,
-          currentVolume: forecastRes.forecast[new Date().getHours()]?.predicted_volume || 1100,
-          currentCongestion: forecastRes.forecast[new Date().getHours()]?.congestion_index || 30,
-          currentStatus: forecastRes.forecast[new Date().getHours()]?.congestion_status || 'CLEAR'
+        let statusLabel = 'Stable'
+        if (hotspots > 3) statusLabel = 'Heavy Congestion'
+        else if (hotspots > 0) statusLabel = 'Moderate Traffic'
+
+        setStats({
+          totalRoads: total,
+          avgCongestion: avgCong,
+          hotspotsCount: hotspots,
+          systemStatus: statusLabel,
+          activeAlerts: hotspots + 2
         })
 
-        // Map forecast array to chart data
-        const mappedCharts = forecastRes.forecast.map((f: any) => ({
-          time: f.time,
-          volume: f.predicted_volume,
-          congestion: f.congestion_index
-        }))
-        setHourlyData(mappedCharts)
+        if (total > 0) {
+          // Average coordinates to center map preview
+          const avgLat = monitoringData.reduce((sum: number, loc: any) => sum + loc.latitude, 0) / total
+          const avgLng = monitoringData.reduce((sum: number, loc: any) => sum + loc.longitude, 0) / total
+          setMapCenter([avgLat, avgLng])
+        }
+
+        // 2. Load 24h hourly forecast trend for a default road (like A1 or first road)
+        const defaultRoad = monitoringData.find((l: any) => l.road_name === 'A1')?.road_name || monitoringData[0]?.road_name
+        if (defaultRoad) {
+          const today = new Date().toISOString().split('T')[0]
+          const forecastRes = await predictionService.getForecast(defaultRoad, today)
+          
+          if (forecastRes && forecastRes.forecast) {
+            setForecast({
+              confidence: forecastRes.confidence,
+              peakHour: forecastRes.peak_hour,
+              delayMinutes: forecastRes.estimated_delay_minutes,
+              defaultRoadName: defaultRoad,
+              currentVolume: forecastRes.forecast[new Date().getHours()]?.predicted_volume || 1100,
+              currentCongestion: forecastRes.forecast[new Date().getHours()]?.congestion_index || 30,
+              currentStatus: forecastRes.forecast[new Date().getHours()]?.congestion_status || 'CLEAR'
+            })
+
+            // Map forecast array to chart data
+            const mappedCharts = forecastRes.forecast.map((f: any) => ({
+              time: f.time,
+              volume: f.predicted_volume,
+              congestion: f.congestion_index
+            }))
+            setHourlyData(mappedCharts)
+          }
+        }
       }
     } catch (error) {
       console.error('Failed to load dashboard data:', error)
@@ -170,11 +174,13 @@ export function DashboardPage() {
         systemStatus: 'Stable',
         activeAlerts: 3
       })
+    } finally {
+      setLoading(false)
     }
   }
 
   useEffect(() => {
-    loadData().then(() => setLoading(false))
+    loadData()
   }, [])
 
   const handleRefresh = async () => {
