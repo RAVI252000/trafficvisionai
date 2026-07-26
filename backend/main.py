@@ -9,6 +9,7 @@ from api.prediction import router as prediction_router
 from api.v1_reports import router as reports_router
 from api.v1_forecast import router as forecast_router
 from api.v1_routes import router as routes_router
+from api.v1_traffic_api import router as traffic_api_router
 
 app = FastAPI(
     title="TrafficVision AI Backend",
@@ -39,6 +40,7 @@ app.include_router(prediction_router)
 app.include_router(reports_router)
 app.include_router(forecast_router)
 app.include_router(routes_router)
+app.include_router(traffic_api_router)
 
 @app.get("/")
 def read_root():

@@ -56,6 +56,37 @@ export const predictionService = {
   },
 
   /**
+   * Generate and archive a custom traffic report in the backend.
+   */
+  async generateTrafficReport(payload) {
+    const response = await api.post('/api/v1/reports/generate', payload)
+    return response.data
+  },
+
+  /**
+   * Get list of previously generated reports for this user.
+   */
+  async getTrafficReportsHistory() {
+    const response = await api.get('/api/v1/reports/history')
+    return response.data
+  },
+
+  /**
+   * Delete a specific report from history.
+   */
+  async deleteTrafficReport(reportId) {
+    const response = await api.delete(`/api/v1/reports/${reportId}`)
+    return response.data
+  },
+
+  /**
+   * Get the download absolute URL for a specific report.
+   */
+  getDownloadReportUrl(reportId) {
+    return `http://localhost:8000/api/v1/reports/${reportId}/download`
+  },
+
+  /**
    * Get 30m - 3h congestion forecasting workflow
    */
   async getCongestionForecastWorkflow(roadName, dateStr) {
@@ -71,10 +102,13 @@ export const predictionService = {
   /**
    * Get route recommendations between two points
    */
-  async recommendRoutes(sourceRoad, destRoad) {
+  async recommendRoutes(sourceRoad, destRoad, preference = "Fastest", weather = "Clear", roadCondition = "Excellent") {
     const response = await api.post('/api/v1/routes/recommend', {
       source_road: sourceRoad,
-      dest_road: destRoad
+      dest_road: destRoad,
+      preference,
+      weather,
+      road_condition: roadCondition
     })
     return response.data
   },
@@ -82,11 +116,13 @@ export const predictionService = {
   /**
    * Estimate travel time metrics
    */
-  async estimateTravelTime(distanceKm, congestionLevel, roadType = "Major") {
+  async estimateTravelTime(distanceKm, congestionLevel, roadType = "Major", weather = "Clear", roadCondition = "Excellent") {
     const response = await api.post('/api/v1/routes/travel-time', {
       distance_km: distanceKm,
       congestion_level: congestionLevel,
-      road_type: roadType
+      road_type: roadType,
+      weather,
+      road_condition: roadCondition
     })
     return response.data
   },
@@ -96,6 +132,20 @@ export const predictionService = {
    */
   async getMonitoringStatus() {
     const response = await api.get('/api/v1/forecast/monitoring-status')
+    return response.data
+  },
+
+  /**
+   * Get real-time traffic flow segment speed, limit and delay from external TomTom API.
+   */
+  async getLiveTrafficFlow(latitude, longitude, roadName) {
+    const response = await api.get('/api/v1/traffic/live-flow', {
+      params: {
+        latitude,
+        longitude,
+        road_name: roadName
+      }
+    })
     return response.data
   }
 }

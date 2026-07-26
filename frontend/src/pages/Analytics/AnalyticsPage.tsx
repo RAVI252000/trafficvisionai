@@ -6,9 +6,10 @@ import {
 } from 'recharts'
 import {
   FileText, Download, Calendar, MapPin, Gauge, LayoutGrid,
-  Clock, BarChart3, TrendingUp, Info, Activity, ShieldAlert, Sparkles, RefreshCw
+  Clock, BarChart3, TrendingUp, Info, Activity, ShieldAlert, Sparkles, RefreshCw, Trash2
 } from 'lucide-react'
 import { predictionService } from '../../services/predictionService'
+import { api } from '../../services/api'
 
 export function AnalyticsPage() {
   const [reportData, setReportData] = useState<any>(null)
@@ -22,6 +23,21 @@ export function AnalyticsPage() {
   const [selectedRegion, setSelectedRegion] = useState<string>('All')
   const [selectedRoadType, setSelectedRoadType] = useState<string>('All')
   const [selectedTimeRange, setSelectedTimeRange] = useState<string>('All')
+
+  // Custom Report Generation states
+  const [history, setHistory] = useState<any[]>([])
+  const [historyLoading, setHistoryLoading] = useState<boolean>(true)
+  const [reportName, setReportName] = useState<string>('')
+  const [reportType, setReportType] = useState<string>('General Traffic Flow Summary')
+  const [reportFormat, setReportFormat] = useState<string>('HTML')
+  const [generating, setGenerating] = useState<boolean>(false)
+
+  // Pre-fill report name dynamically when filters change
+  useEffect(() => {
+    const formattedRegion = selectedRegion === 'All' ? 'All Regions' : selectedRegion
+    const datePart = selectedDate || 'All Dates'
+    setReportName(`Traffic Report (${formattedRegion} - ${datePart})`)
+  }, [selectedDate, selectedRegion])
 
   const fetchReports = async () => {
     setLoading(true)
@@ -40,9 +56,106 @@ export function AnalyticsPage() {
     }
   }
 
+  const fetchHistory = async () => {
+    setHistoryLoading(true)
+    try {
+      const data = await predictionService.getTrafficReportsHistory()
+      setHistory(data)
+    } catch (error) {
+      console.error('Failed to fetch reports history:', error)
+    } finally {
+      setHistoryLoading(false)
+    }
+  }
+
   useEffect(() => {
     fetchReports()
   }, [selectedDate, selectedRegion, selectedRoadType, selectedTimeRange])
+
+  useEffect(() => {
+    fetchHistory()
+  }, [])
+
+  const handleGenerateReport = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!reportName.trim()) {
+      alert('Please enter a report name.')
+      return
+    }
+    setGenerating(true)
+    try {
+      await predictionService.generateTrafficReport({
+        name: reportName,
+        report_type: reportType,
+        date: selectedDate,
+        region: selectedRegion,
+        road_type: selectedRoadType,
+        time_range: selectedTimeRange,
+        format: reportFormat
+      })
+      
+      // Clear custom name changes and reload history
+      const formattedRegion = selectedRegion === 'All' ? 'All Regions' : selectedRegion
+      const datePart = selectedDate || 'All Dates'
+      setReportName(`Traffic Report (${formattedRegion} - ${datePart})`)
+      await fetchHistory()
+      alert('Report generated and added to archive history successfully!')
+    } catch (error) {
+      console.error('Failed to generate report:', error)
+      alert('Failed to generate report. Please verify connection to backend.')
+    } finally {
+      setGenerating(false)
+    }
+  }
+
+  const handleDeleteReport = async (id: number) => {
+    if (!confirm('Are you sure you want to permanently delete this report from archive history?')) return
+    try {
+      await predictionService.deleteTrafficReport(id)
+      setHistory(prev => prev.filter(r => r.id !== id))
+    } catch (error) {
+      console.error('Failed to delete report:', error)
+      alert('Failed to delete report.')
+    }
+  }
+
+  const downloadReportFile = async (reportId: number, format: string, name: string) => {
+    try {
+      const response = await api.get(`/api/v1/reports/${reportId}/download`, {
+        responseType: 'blob'
+      })
+      const url = window.URL.createObjectURL(new Blob([response.data]))
+      const link = document.createElement('a')
+      link.href = url
+      const extension = format.toLowerCase() === 'csv' ? 'csv' : 'html'
+      link.setAttribute('download', `${name.replace(/\s+/g, '_')}.${extension}`)
+      document.body.appendChild(link)
+      link.click()
+      link.parentNode?.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Failed to download report:', error)
+      alert('Failed to download report file.')
+    }
+  }
+
+  const viewReportHtml = async (reportId: number) => {
+    try {
+      const response = await api.get(`/api/v1/reports/${reportId}/download`, {
+        responseType: 'text'
+      })
+      const newWindow = window.open()
+      if (newWindow) {
+        newWindow.document.write(response.data)
+        newWindow.document.close()
+      } else {
+        alert('Pop-up blocker is enabled. Please allow pop-ups to view printable report preview.')
+      }
+    } catch (error) {
+      console.error('Failed to preview report:', error)
+      alert('Failed to load printable report preview.')
+    }
+  }
 
   // Real CSV Export
   const handleExportCSV = () => {
@@ -145,82 +258,155 @@ export function AnalyticsPage() {
         </div>
       </div>
 
-      {/* Filter Controls Panel */}
-      <div className="bg-tv-surface/40 border border-white/[0.06] p-4 rounded-2xl backdrop-blur-md">
-        <h4 className="text-xs font-bold text-tv-text uppercase tracking-wider mb-3 flex items-center gap-1.5">
-          <Activity className="h-3.5 w-3.5 text-tv-primary" />
-          Prediction Filters
-        </h4>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {/* Date Picker */}
-          <div className="space-y-1.5">
-            <label className="text-xs text-tv-muted">Target Date</label>
-            <div className="flex items-center gap-2 bg-tv-surface border border-white/[0.08] px-3 py-2 rounded-xl">
-              <Calendar className="h-4 w-4 text-tv-primary" />
+      {/* Filters and Report Generator Panels Grid */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Prediction Filters Panel */}
+        <div className="lg:col-span-2 bg-tv-surface/40 border border-white/[0.06] p-5 rounded-2xl backdrop-blur-md flex flex-col justify-between">
+          <div>
+            <h4 className="text-xs font-bold text-tv-text uppercase tracking-wider mb-4 flex items-center gap-1.5">
+              <Activity className="h-3.5 w-3.5 text-tv-primary" />
+              Prediction Filters
+            </h4>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {/* Date Picker */}
+              <div className="space-y-1.5">
+                <label className="text-xs text-tv-muted">Target Date</label>
+                <div className="flex items-center gap-2 bg-tv-surface border border-white/[0.08] px-3 py-2.5 rounded-xl">
+                  <Calendar className="h-4 w-4 text-tv-primary" />
+                  <input
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    className="bg-transparent text-sm text-tv-text focus:outline-none cursor-pointer w-full"
+                  />
+                </div>
+              </div>
+
+              {/* Region Filter */}
+              <div className="space-y-1.5">
+                <label className="text-xs text-tv-muted">Region</label>
+                <div className="flex items-center gap-2 bg-tv-surface border border-white/[0.08] px-3 py-2.5 rounded-xl">
+                  <MapPin className="h-4 w-4 text-tv-primary" />
+                  <select
+                    value={selectedRegion}
+                    onChange={(e) => setSelectedRegion(e.target.value)}
+                    className="bg-transparent text-sm text-tv-text focus:outline-none cursor-pointer w-full"
+                  >
+                    <option value="All">All Regions</option>
+                    {reportData?.regions?.map((reg: string) => (
+                      <option key={reg} value={reg}>
+                        {reg}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Road Type Filter */}
+              <div className="space-y-1.5">
+                <label className="text-xs text-tv-muted">Road Category</label>
+                <div className="flex items-center gap-2 bg-tv-surface border border-white/[0.08] px-3 py-2.5 rounded-xl">
+                  <LayoutGrid className="h-4 w-4 text-tv-primary" />
+                  <select
+                    value={selectedRoadType}
+                    onChange={(e) => setSelectedRoadType(e.target.value)}
+                    className="bg-transparent text-sm text-tv-text focus:outline-none cursor-pointer w-full"
+                  >
+                    <option value="All">All Road Types</option>
+                    <option value="Major">Major Roads (A-Roads/Motorways)</option>
+                    <option value="Minor">Minor Roads</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Time Range Filter */}
+              <div className="space-y-1.5">
+                <label className="text-xs text-tv-muted">Time Window</label>
+                <div className="flex items-center gap-2 bg-tv-surface border border-white/[0.08] px-3 py-2.5 rounded-xl">
+                  <Clock className="h-4 w-4 text-tv-primary" />
+                  <select
+                    value={selectedTimeRange}
+                    onChange={(e) => setSelectedTimeRange(e.target.value)}
+                    className="bg-transparent text-sm text-tv-text focus:outline-none cursor-pointer w-full"
+                  >
+                    <option value="All">24-Hour Cycle</option>
+                    <option value="Morning">Morning Peak (06:00 - 11:00)</option>
+                    <option value="Afternoon">Afternoon Flow (12:00 - 16:00)</option>
+                    <option value="Evening">Evening Peak (17:00 - 21:00)</option>
+                    <option value="Night">Night Off-Peak (22:00 - 05:00)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Report Generator Control Card */}
+        <div className="bg-tv-surface/40 border border-white/[0.06] p-5 rounded-2xl backdrop-blur-md flex flex-col justify-between">
+          <h4 className="text-xs font-bold text-tv-text uppercase tracking-wider mb-3 flex items-center gap-1.5">
+            <Sparkles className="h-3.5 w-3.5 text-tv-primary" />
+            Archive Custom Report
+          </h4>
+          <form onSubmit={handleGenerateReport} className="space-y-3">
+            {/* Custom Report Title */}
+            <div className="space-y-1">
+              <label className="text-[10px] text-tv-muted uppercase font-semibold">Report Title</label>
               <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="bg-transparent text-sm text-tv-text focus:outline-none cursor-pointer w-full"
+                type="text"
+                value={reportName}
+                onChange={(e) => setReportName(e.target.value)}
+                placeholder="Enter report title..."
+                className="w-full bg-tv-surface border border-white/[0.08] px-3 py-2 rounded-xl text-xs text-tv-text focus:outline-none focus:border-tv-primary/50"
               />
             </div>
-          </div>
 
-          {/* Region Filter */}
-          <div className="space-y-1.5">
-            <label className="text-xs text-tv-muted">Region</label>
-            <div className="flex items-center gap-2 bg-tv-surface border border-white/[0.08] px-3 py-2 rounded-xl">
-              <MapPin className="h-4 w-4 text-tv-primary" />
+            {/* Report Type */}
+            <div className="space-y-1">
+              <label className="text-[10px] text-tv-muted uppercase font-semibold">Report Type</label>
               <select
-                value={selectedRegion}
-                onChange={(e) => setSelectedRegion(e.target.value)}
-                className="bg-transparent text-sm text-tv-text focus:outline-none cursor-pointer w-full"
+                value={reportType}
+                onChange={(e) => setReportType(e.target.value)}
+                className="w-full bg-tv-surface border border-white/[0.08] px-3 py-2 rounded-xl text-xs text-tv-text focus:outline-none focus:border-tv-primary/50 cursor-pointer"
               >
-                <option value="All">All Regions</option>
-                {reportData?.regions?.map((reg: string) => (
-                  <option key={reg} value={reg}>
-                    {reg}
-                  </option>
-                ))}
+                <option value="General Traffic Flow Summary">General Traffic Flow Summary</option>
+                <option value="Congestion & Bottlenecks Analysis">Congestion & Bottlenecks Analysis</option>
+                <option value="Peak Hour Saturation">Peak Hour Saturation</option>
+                <option value="Vehicle Classification Breakdown">Vehicle Classification Breakdown</option>
               </select>
             </div>
-          </div>
 
-          {/* Road Type Filter */}
-          <div className="space-y-1.5">
-            <label className="text-xs text-tv-muted">Road Category</label>
-            <div className="flex items-center gap-2 bg-tv-surface border border-white/[0.08] px-3 py-2 rounded-xl">
-              <LayoutGrid className="h-4 w-4 text-tv-primary" />
+            {/* Export Format */}
+            <div className="space-y-1">
+              <label className="text-[10px] text-tv-muted uppercase font-semibold">Format</label>
               <select
-                value={selectedRoadType}
-                onChange={(e) => setSelectedRoadType(e.target.value)}
-                className="bg-transparent text-sm text-tv-text focus:outline-none cursor-pointer w-full"
+                value={reportFormat}
+                onChange={(e) => setReportFormat(e.target.value)}
+                className="w-full bg-tv-surface border border-white/[0.08] px-3 py-2 rounded-xl text-xs text-tv-text focus:outline-none focus:border-tv-primary/50 cursor-pointer"
               >
-                <option value="All">All Road Types</option>
-                <option value="Major">Major Roads (A-Roads/Motorways)</option>
-                <option value="Minor">Minor Roads</option>
+                <option value="HTML">HTML printable layout (PDF conversion)</option>
+                <option value="CSV">CSV Spreadsheet</option>
               </select>
             </div>
-          </div>
 
-          {/* Time Range Filter */}
-          <div className="space-y-1.5">
-            <label className="text-xs text-tv-muted">Time Window</label>
-            <div className="flex items-center gap-2 bg-tv-surface border border-white/[0.08] px-3 py-2 rounded-xl">
-              <Clock className="h-4 w-4 text-tv-primary" />
-              <select
-                value={selectedTimeRange}
-                onChange={(e) => setSelectedTimeRange(e.target.value)}
-                className="bg-transparent text-sm text-tv-text focus:outline-none cursor-pointer w-full"
-              >
-                <option value="All">24-Hour Cycle</option>
-                <option value="Morning">Morning Peak (06:00 - 11:00)</option>
-                <option value="Afternoon">Afternoon Flow (12:00 - 16:00)</option>
-                <option value="Evening">Evening Peak (17:00 - 21:00)</option>
-                <option value="Night">Night Off-Peak (22:00 - 05:00)</option>
-              </select>
-            </div>
-          </div>
+            {/* Generate Button */}
+            <button
+              type="submit"
+              disabled={generating}
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-tv-primary px-4 py-2.5 text-xs font-semibold text-white transition-all hover:bg-blue-600 disabled:opacity-50 cursor-pointer mt-1"
+            >
+              {generating ? (
+                <>
+                  <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                  <span>Compiling report...</span>
+                </>
+              ) : (
+                <>
+                  <FileText className="h-3.5 w-3.5" />
+                  <span>Generate &amp; Archive Report</span>
+                </>
+              )}
+            </button>
+          </form>
         </div>
       </div>
 
@@ -492,6 +678,100 @@ export function AnalyticsPage() {
                   </tbody>
                 </table>
               </div>
+            </motion.div>
+
+            {/* Archived Reports History Panel */}
+            <motion.div variants={cardVariants} className="tv-glass p-5 rounded-2xl">
+              <div className="flex items-center justify-between border-b border-white/[0.05] pb-3 mb-4">
+                <h4 className="text-sm font-bold text-tv-text flex items-center gap-1.5">
+                  <FileText className="h-4 w-4 text-tv-primary" />
+                  Archived Reports History
+                </h4>
+                <span className="text-[10px] bg-white/[0.03] border border-white/[0.06] px-2 py-0.5 rounded text-tv-muted uppercase font-bold">
+                  Saved on Cloud
+                </span>
+              </div>
+
+              {historyLoading ? (
+                <div className="text-center text-xs text-tv-muted py-6 flex items-center justify-center gap-2">
+                  <RefreshCw className="h-4 w-4 animate-spin text-tv-primary" />
+                  <span>Loading archived history...</span>
+                </div>
+              ) : history.length === 0 ? (
+                <div className="text-center text-xs text-tv-muted py-8 bg-white/[0.01] rounded-xl border border-white/[0.02]">
+                  No reports generated yet. Use the tool above to generate one.
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="text-tv-muted border-b border-white/[0.06] pb-2">
+                        <th className="py-2.5 font-semibold">Report Name</th>
+                        <th className="py-2.5 font-semibold">Report Type</th>
+                        <th className="py-2.5 font-semibold">Filters</th>
+                        <th className="py-2.5 font-semibold">Generated Date</th>
+                        <th className="py-2.5 font-semibold">Format</th>
+                        <th className="py-2.5 font-semibold text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {history.map((rep) => (
+                        <tr key={rep.id} className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors">
+                          <td className="py-3 font-semibold text-tv-text">{rep.name}</td>
+                          <td className="py-3 text-tv-muted">{rep.report_type}</td>
+                          <td className="py-3 text-tv-muted">
+                            Region: {rep.filters_applied?.region || 'All'}, 
+                            Date: {rep.filters_applied?.date || 'All'}
+                          </td>
+                          <td className="py-3 text-tv-muted">
+                            {new Date(rep.created_at).toLocaleString()}
+                          </td>
+                          <td className="py-3">
+                            <span className={`px-2 py-0.5 rounded border text-[10px] font-bold ${
+                              rep.format === 'CSV' 
+                                ? 'bg-tv-emerald/10 text-tv-emerald border-tv-emerald/20' 
+                                : 'bg-tv-primary/10 text-tv-primary border-tv-primary/20'
+                            }`}>
+                              {rep.format}
+                            </span>
+                          </td>
+                          <td className="py-3 text-right space-x-2">
+                            {rep.format === 'CSV' ? (
+                              <button
+                                onClick={() => downloadReportFile(rep.id, rep.format, rep.name)}
+                                className="px-2.5 py-1 rounded bg-tv-emerald/10 text-tv-emerald hover:bg-tv-emerald/20 transition-colors font-medium border border-tv-emerald/20 cursor-pointer text-[10px]"
+                              >
+                                Download CSV
+                              </button>
+                            ) : (
+                              <>
+                                <button
+                                  onClick={() => viewReportHtml(rep.id)}
+                                  className="px-2.5 py-1 rounded bg-tv-primary/10 text-tv-primary hover:bg-tv-primary/20 transition-colors font-medium border border-tv-primary/20 cursor-pointer text-[10px]"
+                                >
+                                  View &amp; Print
+                                </button>
+                                <button
+                                  onClick={() => downloadReportFile(rep.id, rep.format, rep.name)}
+                                  className="px-2.5 py-1 rounded bg-white/5 text-tv-text hover:bg-white/10 transition-colors font-medium border border-white/10 cursor-pointer text-[10px]"
+                                >
+                                  Download HTML
+                                </button>
+                              </>
+                            )}
+                            <button
+                              onClick={() => handleDeleteReport(rep.id)}
+                              className="px-2.5 py-1 rounded bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors font-medium border border-red-500/20 cursor-pointer text-[10px]"
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </motion.div>
           </motion.div>
         ) : (

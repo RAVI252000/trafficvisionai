@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { MapContainer, TileLayer, Circle, Popup, useMap } from 'react-leaflet'
 import {
   MapPin, Activity, Search, RefreshCw,
-  Gauge, LayoutGrid, AlertTriangle, ArrowRight
+  Gauge, LayoutGrid, AlertTriangle, ArrowRight,
+  Clock, Sparkles, Cpu, Wifi
 } from 'lucide-react'
 import { predictionService } from '../../services/predictionService'
 import 'leaflet/dist/leaflet.css'
@@ -28,6 +29,23 @@ export function TrafficMonitoringPage() {
   const [mapCenter, setMapCenter] = useState<[number, number]>([52.5, -1.5])
   const [selectedRoadName, setSelectedRoadName] = useState<string>('')
 
+  // Live External API Flow states
+  const [selectedRoad, setSelectedRoad] = useState<any>(null)
+  const [liveFlow, setLiveFlow] = useState<any>(null)
+  const [liveFlowLoading, setLiveFlowLoading] = useState<boolean>(false)
+
+  const fetchLiveFlow = async (loc: any) => {
+    setLiveFlowLoading(true)
+    try {
+      const data = await predictionService.getLiveTrafficFlow(loc.latitude, loc.longitude, loc.road_name)
+      setLiveFlow(data)
+    } catch (error) {
+      console.error('Failed to fetch live flow segment:', error)
+    } finally {
+      setLiveFlowLoading(false)
+    }
+  }
+
   const fetchLocations = async () => {
     setLoading(true)
     try {
@@ -46,13 +64,22 @@ export function TrafficMonitoringPage() {
     }
   }
 
+  const handleSync = async () => {
+    await fetchLocations()
+    if (selectedRoad) {
+      await fetchLiveFlow(selectedRoad)
+    }
+  }
+
   useEffect(() => {
     fetchLocations()
   }, [])
 
   const handleSelectRoad = (loc: any) => {
     setSelectedRoadName(loc.road_name)
+    setSelectedRoad(loc)
     setMapCenter([loc.latitude, loc.longitude])
+    fetchLiveFlow(loc)
   }
 
   const filteredLocations = locations.filter(loc =>
@@ -164,11 +191,11 @@ export function TrafficMonitoringPage() {
               </motion.div>
             </div>
 
-            {/* Split layout: Sidebar and Map */}
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
+            {/* 3-Column Split layout: Sidebar, Map and Live Telemetry details */}
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
               
               {/* Left Column: Interactive Checkpoints list */}
-              <motion.div variants={itemVariants} className="tv-glass p-5 rounded-2xl flex flex-col h-[500px]">
+              <motion.div variants={itemVariants} className="lg:col-span-3 tv-glass p-5 rounded-2xl flex flex-col h-[550px]">
                 <div className="relative mb-4">
                   <Search className="absolute left-3 top-2.5 h-4 w-4 text-tv-muted" />
                   <input
@@ -218,8 +245,8 @@ export function TrafficMonitoringPage() {
                 </div>
               </motion.div>
 
-              {/* Right Column: React Leaflet Map Container */}
-              <motion.div variants={itemVariants} className="lg:col-span-3 tv-glass rounded-2xl h-[500px] overflow-hidden relative">
+              {/* Middle Column: React Leaflet Map Container */}
+              <motion.div variants={itemVariants} className="lg:col-span-6 tv-glass rounded-2xl h-[550px] overflow-hidden relative">
                 <MapContainer
                   center={mapCenter}
                   zoom={11}
@@ -268,6 +295,127 @@ export function TrafficMonitoringPage() {
                   <FlyToLocation center={mapCenter} />
                 </MapContainer>
               </motion.div>
+
+              {/* Right Column: Live External API Telemetry Widget */}
+              <motion.div variants={itemVariants} className="lg:col-span-3 tv-glass p-5 rounded-2xl flex flex-col h-[550px] justify-between">
+                <div>
+                  <div className="flex items-center justify-between border-b border-white/[0.05] pb-3 mb-4">
+                    <h4 className="text-xs font-bold text-tv-text uppercase tracking-wider flex items-center gap-1.5">
+                      <Cpu className="h-4 w-4 text-tv-primary" />
+                      Live External Flow
+                    </h4>
+                    <span className="text-[10px] uppercase font-bold text-tv-muted flex items-center gap-1">
+                      <Wifi className="h-3.5 w-3.5 text-tv-primary animate-pulse" />
+                      Live Feed
+                    </span>
+                  </div>
+
+                  {!selectedRoad ? (
+                    <div className="flex flex-col items-center justify-center text-center text-tv-muted py-16 px-4 space-y-3">
+                      <MapPin className="h-10 w-10 text-white/10 animate-bounce" />
+                      <span className="text-xs leading-relaxed">
+                        Select a monitored checkpoint on the left panel or map to establish connection with external sensors.
+                      </span>
+                    </div>
+                  ) : liveFlowLoading ? (
+                    <div className="flex flex-col items-center justify-center py-20 gap-3">
+                      <RefreshCw className="h-7 w-7 animate-spin text-tv-primary" />
+                      <span className="text-xs text-tv-muted">Connecting to external sensors...</span>
+                    </div>
+                  ) : liveFlow ? (
+                    <div className="space-y-4">
+                      {/* Segment header */}
+                      <div>
+                        <span className="text-[9px] uppercase tracking-wider bg-tv-primary/10 text-tv-primary font-semibold px-2 py-0.5 rounded border border-tv-primary/20">
+                          {liveFlow.source}
+                        </span>
+                        <h3 className="text-base font-bold text-tv-text mt-2 flex items-center gap-1.5">
+                          {selectedRoad.road_name}
+                        </h3>
+                        <p className="text-[10px] text-tv-muted mt-0.5">
+                          {selectedRoad.region} &bull; {selectedRoad.road_type} segment
+                        </p>
+                      </div>
+
+                      {/* Speed Metrics */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-white/[0.01] border border-white/[0.04] p-3 rounded-xl">
+                          <span className="text-[10px] text-tv-muted block font-semibold">CURRENT SPEED</span>
+                          <span className="text-lg font-bold text-tv-text block mt-1">
+                            {liveFlow.current_speed} <span className="text-[10px] text-tv-muted font-normal">km/h</span>
+                          </span>
+                        </div>
+                        <div className="bg-white/[0.01] border border-white/[0.04] p-3 rounded-xl">
+                          <span className="text-[10px] text-tv-muted block font-semibold">SPEED LIMIT</span>
+                          <span className="text-lg font-bold text-tv-text block mt-1">
+                            {liveFlow.free_flow_speed} <span className="text-[10px] text-tv-muted font-normal">km/h</span>
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Delays & Travel Times */}
+                      <div className="space-y-2 bg-white/[0.01] border border-white/[0.04] p-3 rounded-xl">
+                        <span className="text-[10px] text-tv-muted block font-semibold">TRAVEL TIMES (1.5 km Segment)</span>
+                        <div className="flex justify-between items-center text-xs mt-1">
+                          <span className="text-tv-muted">Free Flow time:</span>
+                          <span className="font-semibold text-tv-text">{liveFlow.free_flow_travel_time_sec} sec</span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-tv-muted">Live Travel time:</span>
+                          <span className={`font-bold ${
+                            liveFlow.congestion_index >= 60 ? 'text-red-400' : (liveFlow.congestion_index >= 30 ? 'text-tv-orange' : 'text-tv-emerald')
+                          }`}>{liveFlow.current_travel_time_sec} sec</span>
+                        </div>
+                        <div className="border-t border-white/[0.04] pt-2 flex justify-between items-center text-xs mt-2">
+                          <span className="text-tv-muted">Segment delay:</span>
+                          <span className="font-bold text-tv-text">
+                            {Math.max(0, liveFlow.current_travel_time_sec - liveFlow.free_flow_travel_time_sec)} sec
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Congestion Index Visual */}
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-tv-muted font-semibold">CONGESTION SCORE</span>
+                          <span className="font-bold text-tv-text">{liveFlow.congestion_index}%</span>
+                        </div>
+                        <div className="w-full bg-white/[0.08] h-1.5 rounded-full overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all duration-500"
+                            style={{
+                              width: `${liveFlow.congestion_index}%`,
+                              backgroundColor: liveFlow.congestion_index >= 60 
+                                ? '#EF4444' 
+                                : (liveFlow.congestion_index >= 30 ? '#F59E0B' : '#10B981')
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center text-xs text-tv-muted py-12">
+                      Failed to fetch sensor data.
+                    </div>
+                  )}
+                </div>
+
+                {liveFlow && (
+                  <div className="mt-4 pt-3 border-t border-white/[0.04] flex items-center justify-between text-[10px] text-tv-muted">
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-3.5 w-3.5 text-tv-primary" />
+                      Confidence: {Math.round(liveFlow.confidence * 100)}%
+                    </span>
+                    <button
+                      onClick={() => fetchLiveFlow(selectedRoad)}
+                      className="text-tv-primary font-bold hover:text-blue-400 cursor-pointer flex items-center gap-1"
+                    >
+                      <RefreshCw className="h-3 w-3" /> Refresh
+                    </button>
+                  </div>
+                )}
+              </motion.div>
+
             </div>
           </motion.div>
         )}

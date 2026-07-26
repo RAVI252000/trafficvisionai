@@ -16,6 +16,7 @@ from database.database import Base
 from models.user import User
 from models.traffic import TrafficData
 from models.congestion import CongestionRecord
+from models.report import TrafficReport
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

@@ -10,11 +10,16 @@ router = APIRouter(prefix="/api/v1/routes", tags=["Route Analysis & Travel Time"
 class RouteRequest(BaseModel):
     source_road: str
     dest_road: str
+    preference: str = "Fastest"  # "Fastest", "Shortest", "Eco"
+    weather: str = "Clear"       # "Clear", "Rain", "Snow", "Fog"
+    road_condition: str = "Excellent"  # "Excellent", "Good", "Maintenance"
 
 class TravelTimeRequest(BaseModel):
     distance_km: float
     congestion_level: float
     road_type: str = "Major"
+    weather: str = "Clear"
+    road_condition: str = "Excellent"
 
 @router.post("/recommend", response_model=List[Dict[str, Any]])
 def recommend_alternate_routes(
@@ -23,7 +28,7 @@ def recommend_alternate_routes(
 ):
     """
     Get a list of routes (best route + alternatives) between two monitored roads.
-    Includes distance, expected travel time, delay, congestion level, and leaflet map path coordinates.
+    Includes distance, expected travel time, delay, congestion level, eco footprint, and map path coordinates.
     Accessible by authenticated users.
     """
     try:
@@ -33,7 +38,13 @@ def recommend_alternate_routes(
                 detail="Source and destination roads must be specified."
             )
         
-        return routing_service.recommend_routes(payload.source_road, payload.dest_road)
+        return routing_service.recommend_routes(
+            source_road=payload.source_road,
+            dest_road=payload.dest_road,
+            preference=payload.preference,
+            weather=payload.weather,
+            road_condition=payload.road_condition
+        )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -46,14 +57,16 @@ def estimate_travel_time_metrics(
     current_user: User = Depends(get_current_active_user)
 ):
     """
-    Estimate travel times, delays, and congestion impact on duration for a given distance and congestion index.
+    Estimate travel times, delays, fuel consumption, CO2 emissions, and weather impact for travel conditions.
     Accessible by authenticated users.
     """
     try:
         return routing_service.estimate_travel_time(
             distance_km=payload.distance_km,
             avg_congestion=payload.congestion_level,
-            road_type=payload.road_type
+            road_type=payload.road_type,
+            weather=payload.weather,
+            road_condition=payload.road_condition
         )
     except Exception as e:
         raise HTTPException(

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { MapContainer, TileLayer, Circle, Polyline, Popup, useMap } from 'react-leaflet'
 import {
   Navigation, MapPin, Clock, Route,
-  Info, Compass, RefreshCw, Gauge
+  Info, Compass, RefreshCw, Gauge, Leaf, Sparkles
 } from 'lucide-react'
 import { predictionService } from '../../services/predictionService'
 import 'leaflet/dist/leaflet.css'
@@ -39,10 +39,17 @@ export function RouteAnalysisPage() {
   const [activeRouteId, setActiveRouteId] = useState<number>(1)
   const [loading, setLoading] = useState<boolean>(false)
 
+  // Route calculation filters
+  const [preference, setPreference] = useState<string>('Fastest')
+  const [weather, setWeather] = useState<string>('Clear')
+  const [roadCondition, setRoadCondition] = useState<string>('Excellent')
+
   // Travel Time Calculator State (Estimation Module)
   const [calcDistance, setCalcDistance] = useState<number>(15)
   const [calcCongestion, setCalcCongestion] = useState<number>(45)
   const [calcRoadType, setCalcRoadType] = useState<string>('Major')
+  const [calcWeather, setCalcWeather] = useState<string>('Clear')
+  const [calcRoadCondition, setCalcRoadCondition] = useState<string>('Excellent')
   const [calcResults, setCalcResults] = useState<any>(null)
   const [loadingCalc, setLoadingCalc] = useState<boolean>(false)
 
@@ -54,7 +61,6 @@ export function RouteAnalysisPage() {
         setRoads(roadsList)
         if (roadsList.length > 1) {
           setSourceRoad(roadsList.includes('A1') ? 'A1' : roadsList[0])
-          // Default destination to a different road
           setDestRoad(roadsList.includes('A3112') ? 'A3112' : roadsList[1])
         }
       } catch (error) {
@@ -69,9 +75,18 @@ export function RouteAnalysisPage() {
     if (!sourceRoad || !destRoad) return
     setLoading(true)
     try {
-      const data = await predictionService.recommendRoutes(sourceRoad, destRoad)
+      const data = await predictionService.recommendRoutes(
+        sourceRoad,
+        destRoad,
+        preference,
+        weather,
+        roadCondition
+      )
       setRoutes(data)
-      setActiveRouteId(1) // default to best route
+      // Pick the first route as active (since backend sorts them by preference)
+      if (data.length > 0) {
+        setActiveRouteId(data[0].id)
+      }
     } catch (error) {
       console.error('Failed to compute route recommendations:', error)
     } finally {
@@ -83,7 +98,13 @@ export function RouteAnalysisPage() {
   const handleEstimateTravelTime = async () => {
     setLoadingCalc(true)
     try {
-      const data = await predictionService.estimateTravelTime(calcDistance, calcCongestion, calcRoadType)
+      const data = await predictionService.estimateTravelTime(
+        calcDistance,
+        calcCongestion,
+        calcRoadType,
+        calcWeather,
+        calcRoadCondition
+      )
       setCalcResults(data)
     } catch (error) {
       console.error('Failed to estimate travel time:', error)
@@ -97,11 +118,11 @@ export function RouteAnalysisPage() {
     if (sourceRoad && destRoad) {
       handleCalculateRoutes()
     }
-  }, [sourceRoad, destRoad])
+  }, [sourceRoad, destRoad, preference, weather, roadCondition])
 
   useEffect(() => {
     handleEstimateTravelTime()
-  }, [calcDistance, calcCongestion, calcRoadType])
+  }, [calcDistance, calcCongestion, calcRoadType, calcWeather, calcRoadCondition])
 
   const activeRoute = routes.find(r => r.id === activeRouteId)
 
@@ -138,10 +159,39 @@ export function RouteAnalysisPage() {
         </p>
       </div>
 
-      {/* Select Source/Destination Panel */}
-      <div className="bg-tv-surface/40 border border-white/[0.06] p-4 rounded-2xl backdrop-blur-md">
-        <div className="flex flex-wrap items-end gap-4">
-          <div className="flex-1 min-w-[200px] space-y-1.5">
+      {/* Select Source/Destination & Conditions Panel */}
+      <div className="bg-tv-surface/40 border border-white/[0.06] p-5 rounded-2xl backdrop-blur-md space-y-4">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center justify-between border-b border-white/[0.04] pb-3">
+          <div className="flex items-center gap-1.5">
+            <Sparkles className="h-4 w-4 text-tv-primary animate-pulse" />
+            <h4 className="text-xs font-bold text-tv-text uppercase tracking-wider">Route Optimization Settings</h4>
+          </div>
+          
+          {/* Preferences tabs selector */}
+          <div className="flex bg-tv-surface border border-white/[0.08] p-1 rounded-xl gap-1">
+            {['Fastest', 'Shortest', 'Eco'].map((pref) => {
+              const isActive = preference === pref
+              const label = pref === 'Eco' ? 'Eco-Friendly 🍃' : (pref === 'Shortest' ? 'Shortest 📏' : 'Fastest ⚡')
+              return (
+                <button
+                  key={pref}
+                  type="button"
+                  onClick={() => setPreference(pref)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    isActive 
+                      ? 'bg-tv-primary text-white shadow-md' 
+                      : 'text-tv-muted hover:text-tv-text hover:bg-white/[0.02]'
+                  }`}
+                >
+                  {label}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="space-y-1.5">
             <label className="text-xs text-tv-muted flex items-center gap-1">
               <MapPin className="h-3.5 w-3.5 text-tv-emerald" />
               Source Checkpoint
@@ -149,7 +199,7 @@ export function RouteAnalysisPage() {
             <select
               value={sourceRoad}
               onChange={(e) => setSourceRoad(e.target.value)}
-              className="w-full bg-tv-surface border border-white/[0.08] rounded-xl px-3 py-2.5 text-sm text-tv-text focus:outline-none focus:border-tv-primary cursor-pointer"
+              className="w-full bg-tv-surface border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-tv-text focus:outline-none focus:border-tv-primary cursor-pointer font-semibold"
             >
               {roads.map(r => (
                 <option key={`src-${r}`} value={r} disabled={r === destRoad}>
@@ -159,7 +209,7 @@ export function RouteAnalysisPage() {
             </select>
           </div>
 
-          <div className="flex-1 min-w-[200px] space-y-1.5">
+          <div className="space-y-1.5">
             <label className="text-xs text-tv-muted flex items-center gap-1">
               <MapPin className="h-3.5 w-3.5 text-red-400" />
               Destination Checkpoint
@@ -167,7 +217,7 @@ export function RouteAnalysisPage() {
             <select
               value={destRoad}
               onChange={(e) => setDestRoad(e.target.value)}
-              className="w-full bg-tv-surface border border-white/[0.08] rounded-xl px-3 py-2.5 text-sm text-tv-text focus:outline-none focus:border-tv-primary cursor-pointer"
+              className="w-full bg-tv-surface border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-tv-text focus:outline-none focus:border-tv-primary cursor-pointer font-semibold"
             >
               {roads.map(r => (
                 <option key={`dest-${r}`} value={r} disabled={r === sourceRoad}>
@@ -177,13 +227,48 @@ export function RouteAnalysisPage() {
             </select>
           </div>
 
+          <div className="space-y-1.5">
+            <label className="text-xs text-tv-muted flex items-center gap-1">
+              <RefreshCw className="h-3.5 w-3.5 text-tv-primary" />
+              Current Weather
+            </label>
+            <select
+              value={weather}
+              onChange={(e) => setWeather(e.target.value)}
+              className="w-full bg-tv-surface border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-tv-text focus:outline-none focus:border-tv-primary cursor-pointer"
+            >
+              <option value="Clear">Sunny / Clear</option>
+              <option value="Rain">Rainy (Traffic Speed -15%)</option>
+              <option value="Snow">Snowy / Icy (Traffic Speed -35%)</option>
+              <option value="Fog">Heavy Fog (Traffic Speed -25%)</option>
+            </select>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs text-tv-muted flex items-center gap-1">
+              <Info className="h-3.5 w-3.5 text-tv-orange" />
+              Roadway Condition
+            </label>
+            <select
+              value={roadCondition}
+              onChange={(e) => setRoadCondition(e.target.value)}
+              className="w-full bg-tv-surface border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-tv-text focus:outline-none focus:border-tv-primary cursor-pointer"
+            >
+              <option value="Excellent">Normal / Excellent</option>
+              <option value="Good">Good</option>
+              <option value="Maintenance">Maintenance Zones (-25% Capacity)</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="flex justify-end pt-2">
           <button
             onClick={handleCalculateRoutes}
             disabled={loading}
-            className="rounded-xl bg-tv-primary px-5 py-2.5 text-sm font-semibold text-tv-text transition-all hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2 cursor-pointer"
+            className="rounded-xl bg-tv-primary px-5 py-2.5 text-xs font-bold text-white transition-all hover:bg-blue-600 disabled:opacity-50 flex items-center gap-2 cursor-pointer"
           >
             <Compass className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            <span>Recalculate Paths</span>
+            <span>Recalculate Optimal Paths</span>
           </button>
         </div>
       </div>
@@ -327,19 +412,30 @@ export function RouteAnalysisPage() {
                         </span>
                       </div>
 
-                      <div className="grid grid-cols-3 gap-2 mt-4 text-center">
-                        <div className="bg-white/[0.02] border border-white/[0.05] p-2 rounded-lg">
-                          <p className="text-[9px] text-tv-muted uppercase font-medium">Distance</p>
+                      <div className="grid grid-cols-3 gap-2 mt-3 text-center">
+                        <div className="bg-white/[0.02] border border-white/[0.05] p-1.5 rounded-lg">
+                          <p className="text-[8px] text-tv-muted uppercase font-medium">Distance</p>
                           <p className="text-xs font-bold text-tv-text mt-0.5">{rt.distance_km} km</p>
                         </div>
-                        <div className="bg-white/[0.02] border border-white/[0.05] p-2 rounded-lg">
-                          <p className="text-[9px] text-tv-muted uppercase font-medium">Travel Time</p>
+                        <div className="bg-white/[0.02] border border-white/[0.05] p-1.5 rounded-lg">
+                          <p className="text-[8px] text-tv-muted uppercase font-medium">Time</p>
                           <p className="text-xs font-bold text-tv-text mt-0.5">{rt.estimated_time} min</p>
                         </div>
-                        <div className="bg-white/[0.02] border border-white/[0.05] p-2 rounded-lg">
-                          <p className="text-[9px] text-tv-muted uppercase font-medium">Delay</p>
+                        <div className="bg-white/[0.02] border border-white/[0.05] p-1.5 rounded-lg">
+                          <p className="text-[8px] text-tv-muted uppercase font-medium">Delay</p>
                           <p className="text-xs font-bold text-red-400 mt-0.5">+{rt.delay} min</p>
                         </div>
+                      </div>
+
+                      {/* Eco Emission Metrics */}
+                      <div className="mt-2 flex justify-between items-center text-[10px] text-tv-muted bg-white/[0.01] px-2.5 py-1.5 rounded-lg border border-white/[0.03]">
+                        <span className="flex items-center gap-1">
+                          <Leaf className="h-3.5 w-3.5 text-tv-emerald" />
+                          Eco Footprint:
+                        </span>
+                        <span className="font-bold text-tv-text">
+                          {rt.co2_kg} kg CO₂ &bull; {rt.fuel_liters}L
+                        </span>
                       </div>
                     </motion.div>
                   )
@@ -394,10 +490,39 @@ export function RouteAnalysisPage() {
                   <select
                     value={calcRoadType}
                     onChange={(e) => setCalcRoadType(e.target.value)}
-                    className="w-full bg-tv-surface border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-tv-text focus:outline-none"
+                    className="w-full bg-tv-surface border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-tv-text focus:outline-none focus:border-tv-primary cursor-pointer font-semibold"
                   >
                     <option value="Major">Major Arterial (60 km/h baseline)</option>
                     <option value="Minor">Minor Collector (40 km/h baseline)</option>
+                  </select>
+                </div>
+
+                {/* Simulator Weather conditions */}
+                <div className="space-y-1.5">
+                  <label className="text-xs text-tv-muted">Weather Conditions</label>
+                  <select
+                    value={calcWeather}
+                    onChange={(e) => setCalcWeather(e.target.value)}
+                    className="w-full bg-tv-surface border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-tv-text focus:outline-none focus:border-tv-primary cursor-pointer"
+                  >
+                    <option value="Clear">Sunny / Clear</option>
+                    <option value="Rain">Rainy (Adds Congestion Delay)</option>
+                    <option value="Snow">Snowy (Adds Heavy Congestion Delay)</option>
+                    <option value="Fog">Heavy Fog (Adds Visibility Delay)</option>
+                  </select>
+                </div>
+
+                {/* Simulator Road conditions */}
+                <div className="space-y-1.5">
+                  <label className="text-xs text-tv-muted">Roadway Conditions</label>
+                  <select
+                    value={calcRoadCondition}
+                    onChange={(e) => setCalcRoadCondition(e.target.value)}
+                    className="w-full bg-tv-surface border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-tv-text focus:outline-none focus:border-tv-primary cursor-pointer"
+                  >
+                    <option value="Excellent">Normal / Excellent</option>
+                    <option value="Good">Good</option>
+                    <option value="Maintenance">Road Maintenance (-25% Speed limit)</option>
                   </select>
                 </div>
               </motion.div>
@@ -443,11 +568,30 @@ export function RouteAnalysisPage() {
                       </div>
                     </div>
 
-                    <div className="bg-white/[0.02] border border-white/[0.06] p-3.5 rounded-xl flex items-start gap-2.5 text-xs text-tv-muted">
-                      <Info className="h-4.5 w-4.5 text-tv-primary flex-shrink-0 mt-0.5" />
-                      <p>
-                        Trip speed is dynamically adjusted based on the congestion index ({calcCongestion}%). Under free-flow conditions, average speed is estimated at {calcRoadType === 'Major' ? '60' : '40'} km/h. During high congestion levels, queues and bottlenecks add up to {calcResults.traffic_impact}% delay.
-                      </p>
+                    {/* Eco & Weather details banner */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+                      <div className="bg-tv-emerald/5 border border-tv-emerald/10 p-3.5 rounded-xl flex items-start gap-2.5 text-xs text-tv-muted">
+                        <Leaf className="h-4.5 w-4.5 text-tv-emerald flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-semibold text-tv-emerald">Estimated Trip Emissions</p>
+                          <p className="text-[11px] mt-0.5">
+                            This trip will produce approx <strong className="text-tv-text">{calcResults.co2_kg} kg</strong> of CO₂ and consume <strong className="text-tv-text">{calcResults.fuel_liters} Liters</strong> of fuel. Driving during high congestion increases emissions due to idling.
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-tv-primary/5 border border-white/[0.06] p-3.5 rounded-xl flex items-start gap-2.5 text-xs text-tv-muted">
+                        <Info className="h-4.5 w-4.5 text-tv-primary flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-semibold text-tv-text">Speed & Condition Adjustments</p>
+                          <p className="text-[11px] mt-0.5">
+                            Baseline free-flow speed is {calcRoadType === 'Major' ? '60' : '40'} km/h. 
+                            {calcWeather !== 'Clear' && ` Weather (${calcWeather}) and`} 
+                            {calcRoadCondition === 'Maintenance' ? ' active Road Maintenance' : ' road conditions'} adjusted base capacity. 
+                            Congestion index ({calcCongestion}%) introduces {calcResults.traffic_impact}% delay.
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ) : (
