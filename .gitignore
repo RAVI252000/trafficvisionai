@@ -40,3 +40,4 @@ Thumbs.db
 
 # Project-specific
 ai_models/data/raw/
+datasets/dft_traffic_counts_raw_counts/
