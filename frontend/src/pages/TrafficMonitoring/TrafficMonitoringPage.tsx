@@ -4,7 +4,7 @@ import { MapContainer, TileLayer, Circle, Popup, useMap } from 'react-leaflet'
 import {
   MapPin, Activity, Search, RefreshCw,
   Gauge, LayoutGrid, AlertTriangle, ArrowRight,
-  Clock, Sparkles, Cpu, Wifi
+  Clock, Cpu, Wifi
 } from 'lucide-react'
 import { predictionService } from '../../services/predictionService'
 import 'leaflet/dist/leaflet.css'
@@ -64,12 +64,7 @@ export function TrafficMonitoringPage() {
     }
   }
 
-  const handleSync = async () => {
-    await fetchLocations()
-    if (selectedRoad) {
-      await fetchLiveFlow(selectedRoad)
-    }
-  }
+
 
   useEffect(() => {
     fetchLocations()

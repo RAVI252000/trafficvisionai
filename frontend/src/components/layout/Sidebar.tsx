@@ -11,7 +11,8 @@ import {
   ShieldCheck,
   LogOut,
   X,
-  Activity
+  Activity,
+  Map
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { ROUTES } from '../../utils/constants'
@@ -36,6 +37,8 @@ export function Sidebar({ onClose }: SidebarProps) {
     { name: 'Route Analysis', path: ROUTES.ROUTE_ANALYSIS, icon: Navigation },
     { name: 'Alerts & Incidents', path: ROUTES.ALERTS, icon: AlertTriangle },
     { name: 'Analytics', path: ROUTES.ANALYTICS, icon: BarChart3 },
+    { name: 'Interactive Heatmap', path: ROUTES.HEATMAP, icon: Map },
+    { name: 'Traffic Trends', path: ROUTES.TRENDS, icon: Activity },
     { name: 'User Profile', path: ROUTES.PROFILE, icon: User },
   ]
 

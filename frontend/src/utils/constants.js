@@ -19,6 +19,8 @@ export const ROUTES = {
   ROUTE_ANALYSIS: '/route-analysis',
   ALERTS: '/alerts',
   ANALYTICS: '/analytics',
+  HEATMAP: '/heatmap',
+  TRENDS: '/trends',
   PROFILE: '/profile',
   ADMIN: '/admin',
 }

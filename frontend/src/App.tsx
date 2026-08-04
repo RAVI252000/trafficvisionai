@@ -11,6 +11,8 @@ import { TrafficPredictionPage } from './pages/TrafficPrediction/TrafficPredicti
 import { RouteAnalysisPage } from './pages/RouteAnalysis/RouteAnalysisPage'
 import { AlertsPage } from './pages/Alerts/AlertsPage'
 import { AnalyticsPage } from './pages/Analytics/AnalyticsPage'
+import { HeatmapPage } from './pages/Heatmap/HeatmapPage'
+import { TrendsPage } from './pages/Trends/TrendsPage'
 import { ProfilePage } from './pages/Profile/ProfilePage'
 import { AdminPage } from './pages/Admin/AdminPage'
 
@@ -33,6 +35,8 @@ function App() {
               <Route path={ROUTES.ROUTE_ANALYSIS} element={<RouteAnalysisPage />} />
               <Route path={ROUTES.ALERTS} element={<AlertsPage />} />
               <Route path={ROUTES.ANALYTICS} element={<AnalyticsPage />} />
+              <Route path={ROUTES.HEATMAP} element={<HeatmapPage />} />
+              <Route path={ROUTES.TRENDS} element={<TrendsPage />} />
               <Route path={ROUTES.PROFILE} element={<ProfilePage />} />
               <Route path={ROUTES.ADMIN} element={<AdminPage />} />
             </Route>

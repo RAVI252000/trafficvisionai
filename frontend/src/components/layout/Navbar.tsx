@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Menu, Bell, Shield, ChevronDown, User, LogOut, Clock, HelpCircle, Activity } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
+import { ROUTES } from '../../utils/constants'
+import { alertService } from '../../services/alertService'
 
 interface NavbarProps {
   onMenuOpen: () => void
@@ -15,10 +17,26 @@ interface NavbarProps {
 export function Navbar({ onMenuOpen }: NavbarProps) {
   const { user, logout } = useAuth()
   const location = useLocation()
+  const navigate = useNavigate()
   
   const [time, setTime] = useState(new Date())
-  const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
+  const [activeAlerts, setActiveAlerts] = useState<any[]>([])
+
+  const fetchActiveAlerts = async () => {
+    try {
+      const data = await alertService.getAlerts({ status: 'Active' })
+      setActiveAlerts(data)
+    } catch (err) {
+      console.error('Failed to fetch active alerts for navbar', err)
+    }
+  }
+
+  useEffect(() => {
+    fetchActiveAlerts()
+    const interval = setInterval(fetchActiveAlerts, 15000)
+    return () => clearInterval(interval)
+  }, [])
 
   // Update clock every second
   useEffect(() => {
@@ -29,7 +47,6 @@ export function Navbar({ onMenuOpen }: NavbarProps) {
   // Close menus when clicking outside (simple cleanup)
   useEffect(() => {
     const handleOutsideClick = () => {
-      setNotificationsOpen(false)
       setProfileOpen(false)
     }
     window.addEventListener('click', handleOutsideClick)
@@ -60,12 +77,7 @@ export function Navbar({ onMenuOpen }: NavbarProps) {
     }
   }
 
-  // Mock Notification List
-  const mockNotifications = [
-    { id: 1, message: 'Congestion detected on Route 4 (Severe)', type: 'danger', time: '2m ago' },
-    { id: 2, message: 'Sensor intersection 12 re-calibrated', type: 'info', time: '15m ago' },
-    { id: 3, message: 'Rain warning updated for downtown area', type: 'warning', time: '1h ago' },
-  ]
+  // Mock Notification List removed in favor of live alert service
 
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
@@ -110,59 +122,20 @@ export function Navbar({ onMenuOpen }: NavbarProps) {
           <span>{formatDay(time)}</span>
         </div>
 
-        {/* Notification bell dropdown trigger */}
+        {/* Notification bell trigger */}
         <div className="relative">
           <button
-            onClick={(e) => {
-              e.stopPropagation()
-              setNotificationsOpen(!notificationsOpen)
-              setProfileOpen(false)
-            }}
-            className={`
-              relative rounded-xl border border-white/[0.06] p-2.5 text-tv-muted transition-colors hover:bg-white/[0.04] hover:text-tv-text
-              ${notificationsOpen ? 'bg-white/[0.04] text-tv-text' : 'bg-transparent'}
-            `}
-            aria-label="View notifications"
+            onClick={() => navigate(ROUTES.ALERTS)}
+            className="relative rounded-xl border border-white/[0.06] p-2.5 text-tv-muted transition-colors hover:bg-white/[0.04] hover:text-tv-text cursor-pointer"
+            aria-label="View alerts"
           >
             <Bell className="h-4.5 w-4.5" />
-            <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-[#0F172A]" />
-          </button>
-
-          <AnimatePresence>
-            {notificationsOpen && (
-              <motion.div
-                initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                transition={{ duration: 0.15 }}
-                onClick={(e) => e.stopPropagation()}
-                className="absolute right-0 mt-2 w-80 rounded-2xl border border-white/[0.08] bg-[#1E293B] p-2 shadow-2xl shadow-black/60 focus:outline-none"
-              >
-                <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-2.5">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-tv-text">Live System Alerts</h3>
-                  <span className="rounded-full bg-tv-primary/10 px-2 py-0.5 text-[10px] font-bold text-tv-primary">
-                    3 New
-                  </span>
-                </div>
-                <div className="mt-1 divide-y divide-white/[0.04]">
-                  {mockNotifications.map((notif) => (
-                    <div key={notif.id} className="flex flex-col gap-1 px-4 py-3 hover:bg-white/[0.02] transition-colors rounded-lg cursor-pointer">
-                      <div className="flex items-center justify-between">
-                        <span className={`h-1.5 w-1.5 rounded-full ${notif.type === 'danger' ? 'bg-red-500' : notif.type === 'warning' ? 'bg-tv-orange' : 'bg-blue-400'}`} />
-                        <span className="text-[10px] text-tv-muted">{notif.time}</span>
-                      </div>
-                      <p className="text-xs font-medium text-tv-text line-clamp-2 leading-relaxed">{notif.message}</p>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-1 border-t border-white/[0.06] p-2 text-center">
-                  <button className="text-xs font-semibold text-tv-primary transition-colors hover:text-blue-400 w-full py-1">
-                    View All Incidents
-                  </button>
-                </div>
-              </motion.div>
+            {activeAlerts.length > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-[#0F172A]">
+                {activeAlerts.length}
+              </span>
             )}
-          </AnimatePresence>
+          </button>
         </div>
 
         {/* User Profile dropdown trigger */}
@@ -172,7 +145,6 @@ export function Navbar({ onMenuOpen }: NavbarProps) {
               onClick={(e) => {
                 e.stopPropagation()
                 setProfileOpen(!profileOpen)
-                setNotificationsOpen(false)
               }}
               className="flex items-center gap-2 rounded-xl border border-white/[0.06] bg-transparent p-1.5 pr-3 text-tv-muted transition-colors hover:bg-white/[0.04] hover:text-tv-text"
               aria-label="User menu"

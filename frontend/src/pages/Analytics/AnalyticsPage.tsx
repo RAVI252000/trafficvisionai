@@ -5,783 +5,599 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts'
 import {
-  FileText, Download, Calendar, MapPin, Gauge, LayoutGrid,
-  Clock, BarChart3, TrendingUp, Info, Activity, ShieldAlert, Sparkles, RefreshCw, Trash2
+  Download, Clock, BarChart3, TrendingUp, Activity, ShieldAlert,
+  Sparkles, RefreshCw, Shield, Settings, Sliders
 } from 'lucide-react'
-import { predictionService } from '../../services/predictionService'
-import { api } from '../../services/api'
+import { analyticsService } from '../../services/analyticsService'
+import { useAuth } from '../../hooks/useAuth'
+
+// Centralized filter options
+const REGIONS = [
+  'All', 'London', 'South East', 'South West', 'North West', 'East of England',
+  'West Midlands', 'East Midlands', 'Yorkshire and The Humber', 'North East', 'Scotland', 'Wales'
+]
+
+const LOCAL_AUTHORITIES = [
+  'All', 'Aberdeenshire', 'Lambeth', 'Newcastle upon Tyne', 'Tower Hamlets', 'St. Helens',
+  'Worcestershire', 'Lewisham', 'Camden', 'Kingston upon Hull, City of', 'Stockport',
+  'Bedford', 'Swansea', 'Somerset', 'Cardiff'
+]
+
+const ROAD_TYPES = ['All', 'Major', 'Minor']
+const TIME_PERIODS = ['All', 'Morning', 'Afternoon', 'Evening', 'Night']
 
 export function AnalyticsPage() {
-  const [reportData, setReportData] = useState<any>(null)
+  const { user } = useAuth()
+  const isAdmin = user?.role === 'ADMIN'
+
+  // Loading & State
   const [loading, setLoading] = useState<boolean>(true)
   const [exporting, setExporting] = useState<boolean>(false)
+  const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false)
+  const [dashboardSettings, setDashboardSettings] = useState({
+    defaultRegion: 'All',
+    autoRefreshInterval: 'Off',
+    dataRefreshedAt: new Date().toLocaleTimeString()
+  })
 
-  // Filters state
-  const [selectedDate, setSelectedDate] = useState<string>(
-    new Date().toISOString().split('T')[0]
-  )
-  const [selectedRegion, setSelectedRegion] = useState<string>('All')
-  const [selectedRoadType, setSelectedRoadType] = useState<string>('All')
-  const [selectedTimeRange, setSelectedTimeRange] = useState<string>('All')
+  // Dynamic Filters State
+  const [filters, setFilters] = useState({
+    startDate: '',
+    endDate: '',
+    region: 'All',
+    localAuthority: 'All',
+    roadType: 'All',
+    roadName: '',
+    timePeriod: 'All'
+  })
 
-  // Custom Report Generation states
-  const [history, setHistory] = useState<any[]>([])
-  const [historyLoading, setHistoryLoading] = useState<boolean>(true)
-  const [reportName, setReportName] = useState<string>('')
-  const [reportType, setReportType] = useState<string>('General Traffic Flow Summary')
-  const [reportFormat, setReportFormat] = useState<string>('HTML')
-  const [generating, setGenerating] = useState<boolean>(false)
+  // Data State
+  const [kpis, setKpis] = useState<any>(null)
+  const [charts, setCharts] = useState<any>(null)
 
-  // Pre-fill report name dynamically when filters change
-  useEffect(() => {
-    const formattedRegion = selectedRegion === 'All' ? 'All Regions' : selectedRegion
-    const datePart = selectedDate || 'All Dates'
-    setReportName(`Traffic Report (${formattedRegion} - ${datePart})`)
-  }, [selectedDate, selectedRegion])
-
-  const fetchReports = async () => {
+  // Fetch Dashboard and Charts data
+  const fetchData = async () => {
     setLoading(true)
     try {
-      const data = await predictionService.getTrafficPredictionReports({
-        date: selectedDate,
-        region: selectedRegion,
-        road_type: selectedRoadType,
-        time_range: selectedTimeRange
-      })
-      setReportData(data)
+      const apiParams = {
+        start_date: filters.startDate || undefined,
+        end_date: filters.endDate || undefined,
+        region: filters.region,
+        local_authority: filters.localAuthority,
+        road_type: filters.roadType,
+        road_name: filters.roadName || undefined,
+        time_period: filters.timePeriod
+      }
+
+      const [kpiRes, chartsRes] = await Promise.all([
+        analyticsService.getDashboardKPIs(apiParams),
+        analyticsService.getChartsData(apiParams)
+      ])
+
+      setKpis(kpiRes)
+      setCharts(chartsRes)
+      setDashboardSettings(prev => ({
+        ...prev,
+        dataRefreshedAt: new Date().toLocaleTimeString()
+      }))
     } catch (error) {
-      console.error('Failed to fetch prediction reports:', error)
+      console.error('Failed to fetch analytics data:', error)
     } finally {
       setLoading(false)
     }
   }
 
-  const fetchHistory = async () => {
-    setHistoryLoading(true)
-    try {
-      const data = await predictionService.getTrafficReportsHistory()
-      setHistory(data)
-    } catch (error) {
-      console.error('Failed to fetch reports history:', error)
-    } finally {
-      setHistoryLoading(false)
-    }
-  }
-
   useEffect(() => {
-    fetchReports()
-  }, [selectedDate, selectedRegion, selectedRoadType, selectedTimeRange])
+    fetchData()
+  }, [filters])
 
-  useEffect(() => {
-    fetchHistory()
-  }, [])
-
-  const handleGenerateReport = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!reportName.trim()) {
-      alert('Please enter a report name.')
-      return
-    }
-    setGenerating(true)
-    try {
-      await predictionService.generateTrafficReport({
-        name: reportName,
-        report_type: reportType,
-        date: selectedDate,
-        region: selectedRegion,
-        road_type: selectedRoadType,
-        time_range: selectedTimeRange,
-        format: reportFormat
-      })
-      
-      // Clear custom name changes and reload history
-      const formattedRegion = selectedRegion === 'All' ? 'All Regions' : selectedRegion
-      const datePart = selectedDate || 'All Dates'
-      setReportName(`Traffic Report (${formattedRegion} - ${datePart})`)
-      await fetchHistory()
-      alert('Report generated and added to archive history successfully!')
-    } catch (error) {
-      console.error('Failed to generate report:', error)
-      alert('Failed to generate report. Please verify connection to backend.')
-    } finally {
-      setGenerating(false)
-    }
-  }
-
-  const handleDeleteReport = async (id: number) => {
-    if (!confirm('Are you sure you want to permanently delete this report from archive history?')) return
-    try {
-      await predictionService.deleteTrafficReport(id)
-      setHistory(prev => prev.filter(r => r.id !== id))
-    } catch (error) {
-      console.error('Failed to delete report:', error)
-      alert('Failed to delete report.')
-    }
-  }
-
-  const downloadReportFile = async (reportId: number, format: string, name: string) => {
-    try {
-      const response = await api.get(`/api/v1/reports/${reportId}/download`, {
-        responseType: 'blob'
-      })
-      const url = window.URL.createObjectURL(new Blob([response.data]))
-      const link = document.createElement('a')
-      link.href = url
-      const extension = format.toLowerCase() === 'csv' ? 'csv' : 'html'
-      link.setAttribute('download', `${name.replace(/\s+/g, '_')}.${extension}`)
-      document.body.appendChild(link)
-      link.click()
-      link.parentNode?.removeChild(link)
-      window.URL.revokeObjectURL(url)
-    } catch (error) {
-      console.error('Failed to download report:', error)
-      alert('Failed to download report file.')
-    }
-  }
-
-  const viewReportHtml = async (reportId: number) => {
-    try {
-      const response = await api.get(`/api/v1/reports/${reportId}/download`, {
-        responseType: 'text'
-      })
-      const newWindow = window.open()
-      if (newWindow) {
-        newWindow.document.write(response.data)
-        newWindow.document.close()
-      } else {
-        alert('Pop-up blocker is enabled. Please allow pop-ups to view printable report preview.')
-      }
-    } catch (error) {
-      console.error('Failed to preview report:', error)
-      alert('Failed to load printable report preview.')
-    }
-  }
-
-  // Real CSV Export
-  const handleExportCSV = () => {
-    if (!reportData) return
-    setExporting(true)
-    
-    // Create CSV content starting with summary metrics
-    let csvContent = "data:text/csv;charset=utf-8,"
-    csvContent += "TRAFFICVISION AI - PREDICTION REPORT\n"
-    csvContent += `Generated On,${new Date().toISOString()}\n`
-    csvContent += `Filters: Date=${selectedDate}, Region=${selectedRegion}, Road Type=${selectedRoadType}, Time Range=${selectedTimeRange}\n\n`
-    
-    csvContent += "REPORT SUMMARY METRICS\n"
-    csvContent += `Total Predictions,${reportData.total_predictions}\n`
-    csvContent += `Average Traffic Volume (vehicles/hr),${reportData.average_traffic_volume}\n`
-    csvContent += `Average Congestion Index (%),${reportData.average_congestion_score}\n`
-    csvContent += `Peak Hour,${reportData.peak_hour}\n`
-    csvContent += `Lowest Hour,${reportData.lowest_traffic_hour}\n`
-    csvContent += `Model Accuracy (%),${reportData.prediction_accuracy}%\n\n`
-
-    csvContent += "24-HOUR HOURLY FLOW FORECAST TRENDS\n"
-    csvContent += "Hour,Actual Volume (vehicles/hr),Predicted Volume (vehicles/hr),Congestion Index (%)\n"
-    
-    reportData.hourly_trends.forEach((row: any) => {
-      csvContent += `${row.label},${row.actual},${row.predicted},${row.congestion}\n`
+  // Handle filter resets
+  const handleResetFilters = () => {
+    setFilters({
+      startDate: '',
+      endDate: '',
+      region: 'All',
+      localAuthority: 'All',
+      roadType: 'All',
+      roadName: '',
+      timePeriod: 'All'
     })
-
-    const encodedUri = encodeURI(csvContent)
-    const link = document.createElement("a")
-    link.setAttribute("href", encodedUri)
-    link.setAttribute("download", `TrafficVision_Prediction_Report_${selectedDate}.csv`)
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    
-    setTimeout(() => setExporting(false), 600)
   }
 
-  // Mock PDF Export
-  const handleExportPDF = () => {
+  // Handle Excel/PDF exports
+  const handleExport = async (format: 'PDF' | 'CSV') => {
+    if (!isAdmin) return
     setExporting(true)
-    setTimeout(() => {
-      alert("PDF report layout compiled successfully! Downloading 'TrafficVision_Prediction_Report.pdf' (Mocked file download).")
-      setExporting(false)
-    }, 1000)
+    // Simulate generation delay
+    await new Promise(resolve => setTimeout(resolve, 1500))
+    setExporting(false)
+    
+    // Create client-side file download
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ kpis, charts, filters }, null, 2))
+    const downloadAnchor = document.createElement('a')
+    downloadAnchor.setAttribute("href", dataStr)
+    downloadAnchor.setAttribute("download", `TrafficVision_Analytics_Report_${filters.region}_${new Date().toISOString().split('T')[0]}.${format.toLowerCase()}`)
+    document.body.appendChild(downloadAnchor)
+    downloadAnchor.click()
+    downloadAnchor.remove()
   }
-
-  // Helper to color accuracy values
-  const getAccuracyColor = (pct: number) => {
-    if (pct >= 85) return 'text-tv-emerald bg-tv-emerald/10 border-tv-emerald/20'
-    if (pct >= 70) return 'text-tv-orange bg-tv-orange/10 border-tv-orange/20'
-    return 'text-red-400 bg-red-500/10 border-red-500/20'
-  }
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: { staggerChildren: 0.08 }
-    }
-  } as const
-
-  const cardVariants = {
-    hidden: { opacity: 0, y: 15 },
-    show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 80 } }
-  } as const
 
   return (
-    <div className="space-y-6 pb-12">
-      {/* Title & Actions Header */}
-      <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+    <div className="min-h-screen bg-slate-950 p-6 text-slate-100">
+      {/* Header Banner */}
+      <div className="mb-8 flex flex-col justify-between gap-4 border-b border-white/[0.06] pb-6 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-tv-text flex items-center gap-2">
-            <FileText className="h-7 w-7 text-tv-primary" />
-            Traffic Prediction Reports
-          </h1>
-          <p className="text-tv-muted mt-1">
-            Aggregate machine learning insights, model comparisons, and traffic distribution reports.
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-tv-primary">
+            <Activity className="h-4 w-4" />
+            AI Traffic Analytics Engine
+          </div>
+          <h1 className="mt-1 text-3xl font-bold tracking-tight text-white">System Insights & Analytics</h1>
+          <p className="mt-1 text-sm text-slate-400">
+            Real-time urban capacity metrics, XGBoost ML accuracy indices, and dynamic vehicle trends analysis.
           </p>
         </div>
 
-        {/* Export Buttons */}
-        <div className="flex items-center gap-2.5 self-end sm:self-center">
+        {/* Action Controls based on Role */}
+        <div className="flex flex-wrap gap-3">
           <button
-            onClick={handleExportCSV}
-            disabled={loading || exporting}
-            className="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 text-xs font-semibold text-tv-text transition-all hover:bg-white/[0.08] disabled:opacity-50 cursor-pointer"
+            onClick={fetchData}
+            className="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-white/[0.06] hover:text-white"
           >
-            <Download className="h-4 w-4 text-tv-emerald" />
-            <span>Export CSV</span>
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
           </button>
-          <button
-            onClick={handleExportPDF}
-            disabled={loading || exporting}
-            className="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 text-xs font-semibold text-tv-text transition-all hover:bg-white/[0.08] disabled:opacity-50 cursor-pointer"
-          >
-            <FileText className="h-4 w-4 text-tv-primary" />
-            <span>{exporting ? 'Generating PDF...' : 'Export PDF'}</span>
-          </button>
+
+          {isAdmin ? (
+            <>
+              <button
+                onClick={() => handleExport('CSV')}
+                disabled={exporting || loading}
+                className="flex items-center gap-2 rounded-xl bg-tv-primary px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-tv-primary/20 transition hover:bg-blue-500 hover:shadow-tv-primary/30 disabled:opacity-50"
+              >
+                <Download className="h-4 w-4" />
+                {exporting ? 'Exporting...' : 'Export Data (CSV)'}
+              </button>
+              <button
+                onClick={() => setShowSettingsModal(true)}
+                className="flex items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.02] p-2.5 text-slate-300 transition hover:bg-white/[0.06] hover:text-white"
+                title="Manage Dashboard Settings"
+              >
+                <Settings className="h-5 w-5" />
+              </button>
+            </>
+          ) : (
+            <div className="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.02] px-3.5 py-2 text-xs text-slate-400" title="Exporting is restricted to administrators.">
+              <Shield className="h-4 w-4 text-slate-500" />
+              Operator View Only
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Filters and Report Generator Panels Grid */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Prediction Filters Panel */}
-        <div className="lg:col-span-2 bg-tv-surface/40 border border-white/[0.06] p-5 rounded-2xl backdrop-blur-md flex flex-col justify-between">
+      {/* Dynamic Query Filter Panel */}
+      <div className="mb-8 rounded-2xl border border-white/[0.06] bg-[#0F172A] p-6 shadow-xl">
+        <div className="mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2 font-semibold text-white">
+            <Sliders className="h-4 w-4 text-tv-primary" />
+            Dynamic Dashboard Filters
+          </div>
+          <button
+            onClick={handleResetFilters}
+            className="text-xs font-medium text-tv-primary hover:text-blue-400 transition"
+          >
+            Reset Filters
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
+          {/* Start Date */}
           <div>
-            <h4 className="text-xs font-bold text-tv-text uppercase tracking-wider mb-4 flex items-center gap-1.5">
-              <Activity className="h-3.5 w-3.5 text-tv-primary" />
-              Prediction Filters
-            </h4>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {/* Date Picker */}
-              <div className="space-y-1.5">
-                <label className="text-xs text-tv-muted">Target Date</label>
-                <div className="flex items-center gap-2 bg-tv-surface border border-white/[0.08] px-3 py-2.5 rounded-xl">
-                  <Calendar className="h-4 w-4 text-tv-primary" />
-                  <input
-                    type="date"
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                    className="bg-transparent text-sm text-tv-text focus:outline-none cursor-pointer w-full"
-                  />
-                </div>
-              </div>
-
-              {/* Region Filter */}
-              <div className="space-y-1.5">
-                <label className="text-xs text-tv-muted">Region</label>
-                <div className="flex items-center gap-2 bg-tv-surface border border-white/[0.08] px-3 py-2.5 rounded-xl">
-                  <MapPin className="h-4 w-4 text-tv-primary" />
-                  <select
-                    value={selectedRegion}
-                    onChange={(e) => setSelectedRegion(e.target.value)}
-                    className="bg-transparent text-sm text-tv-text focus:outline-none cursor-pointer w-full"
-                  >
-                    <option value="All">All Regions</option>
-                    {reportData?.regions?.map((reg: string) => (
-                      <option key={reg} value={reg}>
-                        {reg}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Road Type Filter */}
-              <div className="space-y-1.5">
-                <label className="text-xs text-tv-muted">Road Category</label>
-                <div className="flex items-center gap-2 bg-tv-surface border border-white/[0.08] px-3 py-2.5 rounded-xl">
-                  <LayoutGrid className="h-4 w-4 text-tv-primary" />
-                  <select
-                    value={selectedRoadType}
-                    onChange={(e) => setSelectedRoadType(e.target.value)}
-                    className="bg-transparent text-sm text-tv-text focus:outline-none cursor-pointer w-full"
-                  >
-                    <option value="All">All Road Types</option>
-                    <option value="Major">Major Roads (A-Roads/Motorways)</option>
-                    <option value="Minor">Minor Roads</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Time Range Filter */}
-              <div className="space-y-1.5">
-                <label className="text-xs text-tv-muted">Time Window</label>
-                <div className="flex items-center gap-2 bg-tv-surface border border-white/[0.08] px-3 py-2.5 rounded-xl">
-                  <Clock className="h-4 w-4 text-tv-primary" />
-                  <select
-                    value={selectedTimeRange}
-                    onChange={(e) => setSelectedTimeRange(e.target.value)}
-                    className="bg-transparent text-sm text-tv-text focus:outline-none cursor-pointer w-full"
-                  >
-                    <option value="All">24-Hour Cycle</option>
-                    <option value="Morning">Morning Peak (06:00 - 11:00)</option>
-                    <option value="Afternoon">Afternoon Flow (12:00 - 16:00)</option>
-                    <option value="Evening">Evening Peak (17:00 - 21:00)</option>
-                    <option value="Night">Night Off-Peak (22:00 - 05:00)</option>
-                  </select>
-                </div>
-              </div>
-            </div>
+            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Start Date</label>
+            <input
+              type="date"
+              value={filters.startDate}
+              onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value }))}
+              className="w-full rounded-xl border border-white/[0.08] bg-slate-900 px-3.5 py-2 text-sm text-white focus:border-tv-primary focus:outline-none"
+            />
           </div>
-        </div>
 
-        {/* Report Generator Control Card */}
-        <div className="bg-tv-surface/40 border border-white/[0.06] p-5 rounded-2xl backdrop-blur-md flex flex-col justify-between">
-          <h4 className="text-xs font-bold text-tv-text uppercase tracking-wider mb-3 flex items-center gap-1.5">
-            <Sparkles className="h-3.5 w-3.5 text-tv-primary" />
-            Archive Custom Report
-          </h4>
-          <form onSubmit={handleGenerateReport} className="space-y-3">
-            {/* Custom Report Title */}
-            <div className="space-y-1">
-              <label className="text-[10px] text-tv-muted uppercase font-semibold">Report Title</label>
-              <input
-                type="text"
-                value={reportName}
-                onChange={(e) => setReportName(e.target.value)}
-                placeholder="Enter report title..."
-                className="w-full bg-tv-surface border border-white/[0.08] px-3 py-2 rounded-xl text-xs text-tv-text focus:outline-none focus:border-tv-primary/50"
-              />
-            </div>
+          {/* End Date */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">End Date</label>
+            <input
+              type="date"
+              value={filters.endDate}
+              onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value }))}
+              className="w-full rounded-xl border border-white/[0.08] bg-slate-900 px-3.5 py-2 text-sm text-white focus:border-tv-primary focus:outline-none"
+            />
+          </div>
 
-            {/* Report Type */}
-            <div className="space-y-1">
-              <label className="text-[10px] text-tv-muted uppercase font-semibold">Report Type</label>
-              <select
-                value={reportType}
-                onChange={(e) => setReportType(e.target.value)}
-                className="w-full bg-tv-surface border border-white/[0.08] px-3 py-2 rounded-xl text-xs text-tv-text focus:outline-none focus:border-tv-primary/50 cursor-pointer"
-              >
-                <option value="General Traffic Flow Summary">General Traffic Flow Summary</option>
-                <option value="Congestion & Bottlenecks Analysis">Congestion & Bottlenecks Analysis</option>
-                <option value="Peak Hour Saturation">Peak Hour Saturation</option>
-                <option value="Vehicle Classification Breakdown">Vehicle Classification Breakdown</option>
-              </select>
-            </div>
-
-            {/* Export Format */}
-            <div className="space-y-1">
-              <label className="text-[10px] text-tv-muted uppercase font-semibold">Format</label>
-              <select
-                value={reportFormat}
-                onChange={(e) => setReportFormat(e.target.value)}
-                className="w-full bg-tv-surface border border-white/[0.08] px-3 py-2 rounded-xl text-xs text-tv-text focus:outline-none focus:border-tv-primary/50 cursor-pointer"
-              >
-                <option value="HTML">HTML printable layout (PDF conversion)</option>
-                <option value="CSV">CSV Spreadsheet</option>
-              </select>
-            </div>
-
-            {/* Generate Button */}
-            <button
-              type="submit"
-              disabled={generating}
-              className="w-full flex items-center justify-center gap-2 rounded-xl bg-tv-primary px-4 py-2.5 text-xs font-semibold text-white transition-all hover:bg-blue-600 disabled:opacity-50 cursor-pointer mt-1"
+          {/* Region */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Region</label>
+            <select
+              value={filters.region}
+              onChange={(e) => setFilters(prev => ({ ...prev, region: e.target.value }))}
+              className="w-full rounded-xl border border-white/[0.08] bg-slate-900 px-3 py-2 text-sm text-white focus:border-tv-primary focus:outline-none"
             >
-              {generating ? (
-                <>
-                  <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                  <span>Compiling report...</span>
-                </>
-              ) : (
-                <>
-                  <FileText className="h-3.5 w-3.5" />
-                  <span>Generate &amp; Archive Report</span>
-                </>
-              )}
-            </button>
-          </form>
+              {REGIONS.map(reg => (
+                <option key={reg} value={reg}>{reg}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Local Authority */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Local Authority</label>
+            <select
+              value={filters.localAuthority}
+              onChange={(e) => setFilters(prev => ({ ...prev, localAuthority: e.target.value }))}
+              className="w-full rounded-xl border border-white/[0.08] bg-slate-900 px-3 py-2 text-sm text-white focus:border-tv-primary focus:outline-none"
+            >
+              {LOCAL_AUTHORITIES.map(auth => (
+                <option key={auth} value={auth}>{auth}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Road Type */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Road Type</label>
+            <select
+              value={filters.roadType}
+              onChange={(e) => setFilters(prev => ({ ...prev, roadType: e.target.value }))}
+              className="w-full rounded-xl border border-white/[0.08] bg-slate-900 px-3 py-2 text-sm text-white focus:border-tv-primary focus:outline-none"
+            >
+              {ROAD_TYPES.map(rt => (
+                <option key={rt} value={rt}>{rt}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Road Name */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Road Name</label>
+            <input
+              type="text"
+              placeholder="e.g. A1, M25"
+              value={filters.roadName}
+              onChange={(e) => setFilters(prev => ({ ...prev, roadName: e.target.value }))}
+              className="w-full rounded-xl border border-white/[0.08] bg-slate-900 px-3.5 py-2 text-sm text-white placeholder-slate-500 focus:border-tv-primary focus:outline-none"
+            />
+          </div>
+
+          {/* Time Period */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Time Period</label>
+            <select
+              value={filters.timePeriod}
+              onChange={(e) => setFilters(prev => ({ ...prev, timePeriod: e.target.value }))}
+              className="w-full rounded-xl border border-white/[0.08] bg-slate-900 px-3 py-2 text-sm text-white focus:border-tv-primary focus:outline-none"
+            >
+              {TIME_PERIODS.map(tp => (
+                <option key={tp} value={tp}>{tp}</option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
-      <AnimatePresence mode="wait">
-        {loading ? (
-          <div key="loading" className="flex h-[45vh] w-full items-center justify-center">
-            <div className="flex flex-col items-center gap-3">
-              <RefreshCw className="h-9 w-9 animate-spin text-tv-primary" />
-              <span className="text-sm font-medium text-tv-muted">Analyzing dataset and compiling predictions…</span>
+      {loading && !kpis ? (
+        <div className="flex h-96 flex-col items-center justify-center gap-3">
+          <RefreshCw className="h-10 w-10 animate-spin text-tv-primary" />
+          <p className="text-sm font-medium text-slate-400">Compiling dataset metrics...</p>
+        </div>
+      ) : (
+        <>
+          {/* KPI Dashboard Cards Grid */}
+          <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
+            {/* 1. Total Traffic Count */}
+            <div className="rounded-2xl border border-white/[0.05] bg-[#1E293B]/40 p-4.5">
+              <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Traffic Count</div>
+              <div className="mt-2 text-2xl font-bold text-white">{(kpis?.total_traffic_count || 0).toLocaleString()}</div>
+              <div className="mt-1 text-[10px] text-slate-400">Total observed vehicles</div>
+            </div>
+
+            {/* 2. Total Predictions */}
+            <div className="rounded-2xl border border-white/[0.05] bg-[#1E293B]/40 p-4.5">
+              <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Predictions</div>
+              <div className="mt-2 text-2xl font-bold text-white">{(kpis?.total_predictions || 0).toLocaleString()}</div>
+              <div className="mt-1 text-[10px] text-tv-primary flex items-center gap-1">
+                <Sparkles className="h-3 w-3" /> XGBoost Generated
+              </div>
+            </div>
+
+            {/* 3. Average Traffic Density */}
+            <div className="rounded-2xl border border-white/[0.05] bg-[#1E293B]/40 p-4.5">
+              <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Avg Traffic Density</div>
+              <div className="mt-2 text-2xl font-bold text-white">{kpis?.average_traffic_density}%</div>
+              <div className="mt-1 h-1.5 w-full rounded-full bg-slate-800">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-green-500 to-amber-500"
+                  style={{ width: `${Math.min(100, kpis?.average_traffic_density || 0)}%` }}
+                />
+              </div>
+            </div>
+
+            {/* 4. Average Congestion Score */}
+            <div className="rounded-2xl border border-white/[0.05] bg-[#1E293B]/40 p-4.5">
+              <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Avg Congestion Index</div>
+              <div className="mt-2 text-2xl font-bold text-white">{kpis?.average_congestion_score}%</div>
+              <div className="mt-1 text-[10px] text-slate-400">Capacity utilization ratio</div>
+            </div>
+
+            {/* 5. Peak Hour */}
+            <div className="rounded-2xl border border-white/[0.05] bg-[#1E293B]/40 p-4.5">
+              <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Peak Traffic Hour</div>
+              <div className="mt-2 text-2xl font-bold text-amber-500 flex items-center gap-1.5">
+                <Clock className="h-5 w-5 text-amber-500" />
+                {kpis?.peak_hour}
+              </div>
+              <div className="mt-1 text-[10px] text-slate-400">Highest volume segment</div>
+            </div>
+
+            {/* 6. Lowest Traffic Hour */}
+            <div className="rounded-2xl border border-white/[0.05] bg-[#1E293B]/40 p-4.5">
+              <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Lowest Hour</div>
+              <div className="mt-2 text-2xl font-bold text-green-500 flex items-center gap-1.5">
+                <Clock className="h-5 w-5 text-green-500" />
+                {kpis?.lowest_traffic_hour}
+              </div>
+              <div className="mt-1 text-[10px] text-slate-400">Lowest density interval</div>
+            </div>
+
+            {/* 7. Average Travel Time */}
+            <div className="rounded-2xl border border-white/[0.05] bg-[#1E293B]/40 p-4.5">
+              <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Avg Travel Time</div>
+              <div className="mt-2 text-2xl font-bold text-white">{kpis?.average_travel_time}m</div>
+              <div className="mt-1 text-[10px] text-slate-400">Estimated per 1.5 km segment</div>
+            </div>
+
+            {/* 8. Total Alerts */}
+            <div className="rounded-2xl border border-white/[0.05] bg-[#1E293B]/40 p-4.5">
+              <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Active Alerts</div>
+              <div className="mt-2 text-2xl font-bold text-red-500 flex items-center gap-1.5">
+                <ShieldAlert className="h-5 w-5 text-red-500" />
+                {kpis?.total_alerts}
+              </div>
+              <div className="mt-1 text-[10px] text-slate-400">Registered in incident DB</div>
+            </div>
+
+            {/* 9. Prediction Accuracy */}
+            <div className="rounded-2xl border border-white/[0.05] bg-[#1E293B]/40 p-4.5">
+              <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Prediction Accuracy</div>
+              <div className="mt-2 text-2xl font-bold text-emerald-400">{kpis?.prediction_accuracy}%</div>
+              <div className="mt-1 text-[10px] text-slate-400">Average R² confidence score</div>
+            </div>
+
+            {/* 10. Total Monitored Roads */}
+            <div className="rounded-2xl border border-white/[0.05] bg-[#1E293B]/40 p-4.5">
+              <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Monitored Roads</div>
+              <div className="mt-2 text-2xl font-bold text-white">{kpis?.total_monitored_roads}</div>
+              <div className="mt-1 text-[10px] text-slate-400">Unique segment records</div>
             </div>
           </div>
-        ) : reportData ? (
-          <motion.div
-            key="content"
-            variants={containerVariants}
-            initial="hidden"
-            animate="show"
-            className="space-y-6"
-          >
-            {/* KPI Metrics Cards Grid */}
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
-              <motion.div variants={cardVariants} className="tv-glass p-5 rounded-2xl flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold text-tv-muted uppercase tracking-wider">Total Runs</p>
-                  <h3 className="text-2xl font-bold mt-1 text-tv-text">{reportData.total_predictions.toLocaleString()}</h3>
-                  <p className="text-xs text-tv-muted mt-1">Aggregated indices</p>
-                </div>
-                <div className="p-3 bg-tv-primary/10 text-tv-primary border border-tv-primary/20 rounded-xl">
-                  <BarChart3 className="h-5 w-5" />
-                </div>
-              </motion.div>
 
-              <motion.div variants={cardVariants} className="tv-glass p-5 rounded-2xl flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold text-tv-muted uppercase tracking-wider">Avg Traffic Flow</p>
-                  <h3 className="text-2xl font-bold mt-1 text-tv-text">{reportData.average_traffic_volume.toLocaleString()}</h3>
-                  <p className="text-xs text-tv-muted mt-1">Vehicles per hour</p>
-                </div>
-                <div className="p-3 bg-tv-emerald/10 text-tv-emerald border border-tv-emerald/20 rounded-xl">
-                  <Gauge className="h-5 w-5" />
-                </div>
-              </motion.div>
-
-              <motion.div variants={cardVariants} className="tv-glass p-5 rounded-2xl flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold text-tv-muted uppercase tracking-wider">Avg Congestion</p>
-                  <h3 className="text-2xl font-bold mt-1 text-tv-text">{reportData.average_congestion_score}%</h3>
-                  <p className="text-xs text-tv-muted mt-1">Road capacity index</p>
-                </div>
-                <div className="p-3 bg-tv-orange/10 text-tv-orange border border-tv-orange/20 rounded-xl">
-                  <TrendingUp className="h-5 w-5" />
-                </div>
-              </motion.div>
-
-              <motion.div variants={cardVariants} className="tv-glass p-5 rounded-2xl flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold text-tv-muted uppercase tracking-wider">Peak Hour</p>
-                  <h3 className="text-2xl font-bold mt-1 text-tv-text">{reportData.peak_hour}</h3>
-                  <p className="text-xs text-tv-muted mt-1">Lowest at {reportData.lowest_traffic_hour}</p>
-                </div>
-                <div className="p-3 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-xl">
-                  <Clock className="h-5 w-5" />
-                </div>
-              </motion.div>
-
-              <motion.div variants={cardVariants} className="tv-glass p-5 rounded-2xl flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold text-tv-muted uppercase tracking-wider">Accuracy Rating</p>
-                  <h3 className="text-2xl font-bold mt-1 text-tv-text">{reportData.prediction_accuracy}%</h3>
-                  <p className="text-xs text-tv-muted mt-1">XGBoost cross R²</p>
-                </div>
-                <div className={`p-3 rounded-xl border ${getAccuracyColor(reportData.prediction_accuracy)}`}>
-                  <Sparkles className="h-5 w-5" />
-                </div>
-              </motion.div>
-            </div>
-
-            {/* Charts Visual Grid */}
+          {/* Charts Panel */}
+          {charts && (
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-              
-              {/* Chart 1: Line Chart - Historical vs Predicted Traffic */}
-              <motion.div variants={cardVariants} className="tv-glass p-6 rounded-2xl">
-                <div className="mb-4">
-                  <h3 className="text-lg font-bold text-tv-text flex items-center gap-1.5">
-                    <Activity className="h-4.5 w-4.5 text-tv-primary" />
-                    Historical vs Predicted Traffic Comparison
-                  </h3>
-                  <p className="text-xs text-tv-muted">Comparison of historical observed volumes vs model predictions</p>
-                </div>
-                <div className="h-[250px] w-full">
+              {/* Hourly Traffic Trend (Line Chart) */}
+              <div className="rounded-2xl border border-white/[0.06] bg-[#0F172A] p-5">
+                <h3 className="mb-4 text-base font-bold text-white flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-tv-primary" />
+                  Hourly Traffic & Congestion Trends (Historical vs AI Predicted)
+                </h3>
+                <div className="h-80 w-full">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={reportData.hourly_trends} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
-                      <CartesianGrid stroke="rgba(255,255,255,0.02)" vertical={false} />
-                      <XAxis dataKey="label" stroke="var(--color-tv-muted)" fontSize={10} tickLine={false} />
-                      <YAxis stroke="var(--color-tv-muted)" fontSize={10} tickLine={false} axisLine={false} />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: 'rgba(30, 41, 59, 0.95)',
-                          borderColor: 'rgba(255, 255, 255, 0.08)',
-                          borderRadius: '12px',
-                          color: '#f8fafc',
-                          fontSize: '11px'
-                        }}
-                      />
-                      <Legend verticalAlign="top" height={36} iconType="circle" fontSize={11} wrapperStyle={{ fontSize: '11px' }} />
-                      <Line type="monotone" dataKey="actual" name="Historical Flow" stroke="#94a3b8" strokeWidth={2} strokeDasharray="4 4" dot={false} />
-                      <Line type="monotone" dataKey="predicted" name="Predicted Flow" stroke="#2563eb" strokeWidth={2.5} dot={false} />
+                    <LineChart data={charts.hourly_trend}>
+                      <CartesianGrid stroke="#1e293b" strokeDasharray="3 3" />
+                      <XAxis dataKey="time" stroke="#94a3b8" fontSize={11} />
+                      <YAxis yAxisId="left" stroke="#94a3b8" fontSize={11} label={{ value: 'Vehicles / Hr', angle: -90, position: 'insideLeft', fill: '#94a3b8', style: {textAnchor: 'middle'} }} />
+                      <YAxis yAxisId="right" orientation="right" stroke="#f59e0b" fontSize={11} domain={[0, 100]} label={{ value: 'Congestion %', angle: 90, position: 'insideRight', fill: '#f59e0b', style: {textAnchor: 'middle'} }} />
+                      <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155' }} labelClassName="text-white font-bold" />
+                      <Legend verticalAlign="top" height={36} />
+                      <Line yAxisId="left" type="monotone" dataKey="volume" stroke="#3b82f6" strokeWidth={2.5} name="Historical Volume" dot={false} />
+                      <Line yAxisId="left" type="monotone" dataKey="predicted" stroke="#10b981" strokeWidth={2} name="AI Predicted Volume" strokeDasharray="5 5" dot={false} />
+                      <Line yAxisId="right" type="monotone" dataKey="congestion" stroke="#f59e0b" strokeWidth={2} name="Congestion index" dot={false} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
-              </motion.div>
+              </div>
 
-              {/* Chart 2: Area Chart - Congestion Index Progression */}
-              <motion.div variants={cardVariants} className="tv-glass p-6 rounded-2xl">
-                <div className="mb-4">
-                  <h3 className="text-lg font-bold text-tv-text flex items-center gap-1.5">
-                    <TrendingUp className="h-4.5 w-4.5 text-tv-orange" />
-                    Hourly Congestion Index Trend
-                  </h3>
-                  <p className="text-xs text-tv-muted">Expected road congestion index (percentage capacity saturation)</p>
-                </div>
-                <div className="h-[250px] w-full">
+              {/* Daily Traffic Comparison (Bar Chart) */}
+              <div className="rounded-2xl border border-white/[0.06] bg-[#0F172A] p-5">
+                <h3 className="mb-4 text-base font-bold text-white flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4 text-tv-primary" />
+                  Daily Traffic Patterns (Volume & Congestion)
+                </h3>
+                <div className="h-80 w-full">
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={reportData.hourly_trends} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
-                      <defs>
-                        <linearGradient id="congGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.25} />
-                          <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.0} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid stroke="rgba(255,255,255,0.02)" vertical={false} />
-                      <XAxis dataKey="label" stroke="var(--color-tv-muted)" fontSize={10} tickLine={false} />
-                      <YAxis stroke="var(--color-tv-muted)" fontSize={10} tickLine={false} axisLine={false} domain={[0, 100]} />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: 'rgba(30, 41, 59, 0.95)',
-                          borderColor: 'rgba(255, 255, 255, 0.08)',
-                          borderRadius: '12px',
-                          color: '#f8fafc',
-                          fontSize: '11px'
-                        }}
-                      />
-                      <Area type="monotone" dataKey="congestion" name="Congestion Level (%)" stroke="#f59e0b" strokeWidth={2} fillOpacity={1} fill="url(#congGrad)" />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              </motion.div>
-
-              {/* Chart 3: Bar Chart - High Congestion Roads */}
-              <motion.div variants={cardVariants} className="tv-glass p-6 rounded-2xl">
-                <div className="mb-4">
-                  <h3 className="text-lg font-bold text-tv-text flex items-center gap-1.5">
-                    <ShieldAlert className="h-4.5 w-4.5 text-red-400" />
-                    Top Congested Monitored Roads
-                  </h3>
-                  <p className="text-xs text-tv-muted">Average congestion score index (%) across filtered criteria</p>
-                </div>
-                <div className="h-[250px] w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={reportData.road_trends} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
-                      <CartesianGrid stroke="rgba(255,255,255,0.02)" vertical={false} />
-                      <XAxis dataKey="road" stroke="var(--color-tv-muted)" fontSize={10} tickLine={false} />
-                      <YAxis stroke="var(--color-tv-muted)" fontSize={10} tickLine={false} axisLine={false} domain={[0, 100]} />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: 'rgba(30, 41, 59, 0.95)',
-                          borderColor: 'rgba(255, 255, 255, 0.08)',
-                          borderRadius: '12px',
-                          color: '#f8fafc',
-                          fontSize: '11px'
-                        }}
-                      />
-                      <Bar dataKey="congestion" name="Avg Congestion (%)" fill="#ef4444" radius={[6, 6, 0, 0]} barSize={24} />
+                    <BarChart data={charts.daily_trend}>
+                      <CartesianGrid stroke="#1e293b" strokeDasharray="3 3" />
+                      <XAxis dataKey="day" stroke="#94a3b8" fontSize={11} />
+                      <YAxis yAxisId="left" stroke="#94a3b8" fontSize={11} />
+                      <YAxis yAxisId="right" orientation="right" stroke="#f59e0b" fontSize={11} domain={[0, 100]} />
+                      <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155' }} />
+                      <Legend verticalAlign="top" height={36} />
+                      <Bar yAxisId="left" dataKey="volume" fill="#3b82f6" name="Average Volume" radius={[4, 4, 0, 0]} />
+                      <Bar yAxisId="right" dataKey="congestion" fill="#f59e0b" name="Avg Congestion %" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
-              </motion.div>
+              </div>
 
-              {/* Chart 4: Pie Chart - Vehicle Distribution Split */}
-              <motion.div variants={cardVariants} className="tv-glass p-6 rounded-2xl">
-                <div className="mb-4">
-                  <h3 className="text-lg font-bold text-tv-text flex items-center gap-1.5">
-                    <LayoutGrid className="h-4.5 w-4.5 text-tv-emerald" />
-                    Vehicle Classification Distribution
-                  </h3>
-                  <p className="text-xs text-tv-muted">Predicted volume share categorized by vehicle class type</p>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-                  <div className="h-[200px] w-full">
+              {/* Congestion Distribution (Pie Chart) */}
+              <div className="rounded-2xl border border-white/[0.06] bg-[#0F172A] p-5">
+                <h3 className="mb-4 text-base font-bold text-white flex items-center gap-2">
+                  <Sliders className="h-4 w-4 text-tv-primary" />
+                  Traffic Congestion Distribution Levels
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 items-center gap-4">
+                  <div className="h-72 w-full">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Pie
-                          data={reportData.vehicle_split}
+                          data={charts.congestion_distribution}
                           cx="50%"
                           cy="50%"
                           innerRadius={60}
-                          outerRadius={80}
+                          outerRadius={90}
                           paddingAngle={3}
                           dataKey="value"
                         >
-                          {reportData.vehicle_split.map((entry: any, index: number) => (
+                          {charts.congestion_distribution.map((entry: any, index: number) => (
                             <Cell key={`cell-${index}`} fill={entry.color} />
                           ))}
                         </Pie>
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: 'rgba(30, 41, 59, 0.95)',
-                            borderColor: 'rgba(255, 255, 255, 0.08)',
-                            borderRadius: '12px',
-                            color: '#f8fafc',
-                            fontSize: '11px'
-                          }}
-                        />
+                        <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155' }} />
                       </PieChart>
                     </ResponsiveContainer>
                   </div>
-                  <div className="space-y-2 text-xs">
-                    {reportData.vehicle_split.map((entry: any, idx: number) => {
-                      const total = reportData.vehicle_split.reduce((sum: number, el: any) => sum + el.value, 0)
-                      const pct = total > 0 ? ((entry.value / total) * 100).toFixed(1) : '0'
-                      return (
-                        <div key={idx} className="flex items-center justify-between p-1.5 rounded-lg bg-white/[0.01] border border-white/[0.04]">
-                          <span className="flex items-center gap-2 text-tv-muted">
-                            <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: entry.color }}></span>
-                            {entry.name}
-                          </span>
-                          <span className="font-bold text-tv-text">{pct}%</span>
+                  <div className="flex flex-col gap-3">
+                    {charts.congestion_distribution.map((level: any) => (
+                      <div key={level.name} className="flex items-center justify-between border-b border-white/[0.04] pb-2">
+                        <div className="flex items-center gap-2 text-sm text-slate-300">
+                          <div className="h-3 w-3 rounded-full" style={{ backgroundColor: level.color }} />
+                          {level.name}
                         </div>
-                      )
-                    })}
+                        <div className="text-sm font-bold text-white">{level.value.toLocaleString()}</div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              </motion.div>
+              </div>
+
+              {/* Vehicle Category Analysis (Stacked Bar Chart) */}
+              <div className="rounded-2xl border border-white/[0.06] bg-[#0F172A] p-5">
+                <h3 className="mb-4 text-base font-bold text-white flex items-center gap-2">
+                  <Sliders className="h-4 w-4 text-tv-primary" />
+                  Vehicle Classification Timeline (Stacked)
+                </h3>
+                <div className="h-80 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={charts.vehicle_category_analysis}>
+                      <CartesianGrid stroke="#1e293b" strokeDasharray="3 3" />
+                      <XAxis dataKey="time" stroke="#94a3b8" fontSize={11} />
+                      <YAxis stroke="#94a3b8" fontSize={11} />
+                      <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155' }} />
+                      <Legend verticalAlign="top" height={36} />
+                      <Bar dataKey="cars" stackId="a" fill="#3b82f6" name="Cars & Taxis" />
+                      <Bar dataKey="lgvs" stackId="a" fill="#10b981" name="Light Vans (LGVs)" />
+                      <Bar dataKey="hgvs" stackId="a" fill="#f59e0b" name="Trucks (HGVs)" />
+                      <Bar dataKey="buses" stackId="a" fill="#8b5cf6" name="Buses & Coaches" />
+                      <Bar dataKey="cycles" stackId="a" fill="#ec4899" name="Pedal Cycles" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Traffic Density Timeline (Area Chart) */}
+              <div className="rounded-2xl border border-white/[0.06] bg-[#0F172A] p-5 lg:col-span-2">
+                <h3 className="mb-4 text-base font-bold text-white flex items-center gap-2">
+                  <Activity className="h-4 w-4 text-tv-primary" />
+                  Traffic Congestion Density Timeline (Last 15 Observations)
+                </h3>
+                <div className="h-72 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={charts.density_timeline}>
+                      <defs>
+                        <linearGradient id="colorDensity" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4} />
+                          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid stroke="#1e293b" strokeDasharray="3 3" />
+                      <XAxis dataKey="date" stroke="#94a3b8" fontSize={10} />
+                      <YAxis stroke="#94a3b8" fontSize={11} domain={[0, 100]} />
+                      <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155' }} />
+                      <Area type="monotone" dataKey="density" stroke="#3b82f6" strokeWidth={2.5} fillOpacity={1} fill="url(#colorDensity)" name="Average Density %" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
             </div>
+          )}
+        </>
+      )}
 
-            {/* High Congestion Roads Summary Table */}
-            <motion.div variants={cardVariants} className="tv-glass p-5 rounded-2xl">
-              <h4 className="text-sm font-bold text-tv-text flex items-center gap-1.5 border-b border-white/[0.05] pb-3 mb-3">
-                <Info className="h-4 w-4 text-tv-orange" />
-                Critical Congestion Roads Overview
-              </h4>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead>
-                    <tr className="text-tv-muted border-b border-white/[0.06] pb-2">
-                      <th className="py-2.5 font-semibold">Road Name</th>
-                      <th className="py-2.5 font-semibold">Region Location</th>
-                      <th className="py-2.5 font-semibold">Congestion Index</th>
-                      <th className="py-2.5 font-semibold">Flow Rate Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {reportData.road_trends.map((item: any, idx: number) => {
-                      const statusColor = item.congestion >= 60 ? 'text-red-400 bg-red-500/10 border-red-500/20' : 'text-tv-orange bg-tv-orange/10 border-tv-orange/20'
-                      const statusText = item.congestion >= 85 ? 'Critical (Blocked)' : (item.congestion >= 60 ? 'Heavy Delay' : 'Moderate')
-                      return (
-                        <tr key={idx} className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors">
-                          <td className="py-3 font-semibold text-tv-text">{item.road}</td>
-                          <td className="py-3 text-tv-muted">{selectedRegion !== 'All' ? selectedRegion : 'United Kingdom'}</td>
-                          <td className="py-3 font-bold text-tv-text">{item.congestion}%</td>
-                          <td className="py-3">
-                            <span className={`px-2 py-0.5 rounded border font-medium ${statusColor}`}>
-                              {statusText}
-                            </span>
-                          </td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </motion.div>
-
-            {/* Archived Reports History Panel */}
-            <motion.div variants={cardVariants} className="tv-glass p-5 rounded-2xl">
-              <div className="flex items-center justify-between border-b border-white/[0.05] pb-3 mb-4">
-                <h4 className="text-sm font-bold text-tv-text flex items-center gap-1.5">
-                  <FileText className="h-4 w-4 text-tv-primary" />
-                  Archived Reports History
-                </h4>
-                <span className="text-[10px] bg-white/[0.03] border border-white/[0.06] px-2 py-0.5 rounded text-tv-muted uppercase font-bold">
-                  Saved on Cloud
-                </span>
+      {/* Admin Settings Modal */}
+      <AnimatePresence>
+        {showSettingsModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="w-full max-w-md rounded-2xl border border-white/[0.08] bg-[#0F172A] p-6 shadow-2xl"
+            >
+              <div className="flex items-center justify-between border-b border-white/[0.06] pb-4">
+                <div className="flex items-center gap-2 text-lg font-bold text-white">
+                  <Settings className="h-5 w-5 text-tv-primary" />
+                  Dashboard Settings
+                </div>
+                <button
+                  onClick={() => setShowSettingsModal(false)}
+                  className="rounded-lg p-1 text-slate-400 hover:bg-white/[0.04] hover:text-white"
+                >
+                  &times;
+                </button>
               </div>
 
-              {historyLoading ? (
-                <div className="text-center text-xs text-tv-muted py-6 flex items-center justify-center gap-2">
-                  <RefreshCw className="h-4 w-4 animate-spin text-tv-primary" />
-                  <span>Loading archived history...</span>
+              <div className="mt-4 flex flex-col gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Default Workspace Region</label>
+                  <select
+                    value={dashboardSettings.defaultRegion}
+                    onChange={(e) => setDashboardSettings(prev => ({ ...prev, defaultRegion: e.target.value }))}
+                    className="w-full rounded-xl border border-white/[0.08] bg-slate-900 px-3 py-2 text-sm text-white focus:outline-none"
+                  >
+                    {REGIONS.map(reg => (
+                      <option key={reg} value={reg}>{reg}</option>
+                    ))}
+                  </select>
                 </div>
-              ) : history.length === 0 ? (
-                <div className="text-center text-xs text-tv-muted py-8 bg-white/[0.01] rounded-xl border border-white/[0.02]">
-                  No reports generated yet. Use the tool above to generate one.
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Auto-Refresh Interval</label>
+                  <select
+                    value={dashboardSettings.autoRefreshInterval}
+                    onChange={(e) => setDashboardSettings(prev => ({ ...prev, autoRefreshInterval: e.target.value }))}
+                    className="w-full rounded-xl border border-white/[0.08] bg-slate-900 px-3 py-2 text-sm text-white focus:outline-none"
+                  >
+                    <option value="Off">Off</option>
+                    <option value="30s">Every 30 seconds</option>
+                    <option value="1m">Every 1 minute</option>
+                    <option value="5m">Every 5 minutes</option>
+                  </select>
                 </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs border-collapse">
-                    <thead>
-                      <tr className="text-tv-muted border-b border-white/[0.06] pb-2">
-                        <th className="py-2.5 font-semibold">Report Name</th>
-                        <th className="py-2.5 font-semibold">Report Type</th>
-                        <th className="py-2.5 font-semibold">Filters</th>
-                        <th className="py-2.5 font-semibold">Generated Date</th>
-                        <th className="py-2.5 font-semibold">Format</th>
-                        <th className="py-2.5 font-semibold text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {history.map((rep) => (
-                        <tr key={rep.id} className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors">
-                          <td className="py-3 font-semibold text-tv-text">{rep.name}</td>
-                          <td className="py-3 text-tv-muted">{rep.report_type}</td>
-                          <td className="py-3 text-tv-muted">
-                            Region: {rep.filters_applied?.region || 'All'}, 
-                            Date: {rep.filters_applied?.date || 'All'}
-                          </td>
-                          <td className="py-3 text-tv-muted">
-                            {new Date(rep.created_at).toLocaleString()}
-                          </td>
-                          <td className="py-3">
-                            <span className={`px-2 py-0.5 rounded border text-[10px] font-bold ${
-                              rep.format === 'CSV' 
-                                ? 'bg-tv-emerald/10 text-tv-emerald border-tv-emerald/20' 
-                                : 'bg-tv-primary/10 text-tv-primary border-tv-primary/20'
-                            }`}>
-                              {rep.format}
-                            </span>
-                          </td>
-                          <td className="py-3 text-right space-x-2">
-                            {rep.format === 'CSV' ? (
-                              <button
-                                onClick={() => downloadReportFile(rep.id, rep.format, rep.name)}
-                                className="px-2.5 py-1 rounded bg-tv-emerald/10 text-tv-emerald hover:bg-tv-emerald/20 transition-colors font-medium border border-tv-emerald/20 cursor-pointer text-[10px]"
-                              >
-                                Download CSV
-                              </button>
-                            ) : (
-                              <>
-                                <button
-                                  onClick={() => viewReportHtml(rep.id)}
-                                  className="px-2.5 py-1 rounded bg-tv-primary/10 text-tv-primary hover:bg-tv-primary/20 transition-colors font-medium border border-tv-primary/20 cursor-pointer text-[10px]"
-                                >
-                                  View &amp; Print
-                                </button>
-                                <button
-                                  onClick={() => downloadReportFile(rep.id, rep.format, rep.name)}
-                                  className="px-2.5 py-1 rounded bg-white/5 text-tv-text hover:bg-white/10 transition-colors font-medium border border-white/10 cursor-pointer text-[10px]"
-                                >
-                                  Download HTML
-                                </button>
-                              </>
-                            )}
-                            <button
-                              onClick={() => handleDeleteReport(rep.id)}
-                              className="px-2.5 py-1 rounded bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors font-medium border border-red-500/20 cursor-pointer text-[10px]"
-                            >
-                              Delete
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+
+                <div className="rounded-xl border border-white/[0.04] bg-white/[0.01] p-3 text-xs text-slate-400">
+                  <span className="font-semibold text-slate-300 block mb-1">System Status</span>
+                  Data last compiled at: <span className="text-white font-mono">{dashboardSettings.dataRefreshedAt}</span>
                 </div>
-              )}
+              </div>
+
+              <div className="mt-6 flex justify-end gap-3 border-t border-white/[0.06] pt-4">
+                <button
+                  onClick={() => setShowSettingsModal(false)}
+                  className="rounded-xl border border-white/[0.08] px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-white/[0.04]"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    setShowSettingsModal(false)
+                    fetchData()
+                  }}
+                  className="rounded-xl bg-tv-primary px-4 py-2 text-sm font-semibold text-white shadow-lg transition hover:bg-blue-500"
+                >
+                  Apply Settings
+                </button>
+              </div>
             </motion.div>
-          </motion.div>
-        ) : (
-          <div key="empty" className="tv-glass p-8 text-center text-tv-muted">
-            Failed to load reporting data. Try adjusting your filters.
           </div>
         )}
       </AnimatePresence>
     </div>
   )
 }
-
-export default AnalyticsPage
