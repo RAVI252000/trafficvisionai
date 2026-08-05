@@ -1,13 +1,20 @@
 from sqlalchemy.orm import Session
 from datetime import datetime
 import random
+import zlib
 from models.alert import Alert, AlertType, AlertSeverity, AlertStatus
 from services.prediction_service import prediction_service
 
 class AlertService:
+    def __init__(self):
+        self.last_generated_time = None
+
     def get_alerts(self, db: Session, status: str = None, severity: str = None, alert_type: str = None):
-        # Trigger AI alert generation dynamically to make sure database is up-to-date
-        self.generate_alerts_from_predictions(db)
+        # Only run generation once every 5 minutes (300 seconds)
+        now = datetime.now()
+        if not self.last_generated_time or (now - self.last_generated_time).total_seconds() > 300:
+            self.generate_alerts_from_predictions(db)
+            self.last_generated_time = now
         
         query = db.query(Alert)
         if status:
@@ -16,7 +23,7 @@ class AlertService:
             query = query.filter(Alert.severity == severity)
         if alert_type:
             query = query.filter(Alert.alert_type == alert_type)
-        return query.order_by(Alert.created_at.desc()).all()
+        return query.order_by(Alert.created_at.desc()).limit(150).all()
 
     def get_alert_by_id(self, db: Session, alert_id: int):
         return db.query(Alert).filter(Alert.id == alert_id).first()
@@ -161,7 +168,8 @@ class AlertService:
             # Use coordinate hash + hour hash for deterministic simulation per hour/road
             # This avoids creating new random alerts every single page refresh, making the system predictable
             now = datetime.now()
-            sim_seed = hash(f"{road_name}-{now.year}-{now.month}-{now.day}-{now.hour}")
+            seed_str = f"{road_name}-{now.year}-{now.month}-{now.day}-{now.hour}"
+            sim_seed = zlib.adler32(seed_str.encode('utf-8'))
             random.seed(sim_seed)
 
             # 5% chance of simulated Accident
