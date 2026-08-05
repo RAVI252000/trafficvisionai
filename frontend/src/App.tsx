@@ -13,6 +13,8 @@ import { AlertsPage } from './pages/Alerts/AlertsPage'
 import { AnalyticsPage } from './pages/Analytics/AnalyticsPage'
 import { HeatmapPage } from './pages/Heatmap/HeatmapPage'
 import { TrendsPage } from './pages/Trends/TrendsPage'
+import { RecommendationsPage } from './pages/Recommendations/RecommendationsPage'
+import { ReportsPage } from './pages/Reports/ReportsPage'
 import { ProfilePage } from './pages/Profile/ProfilePage'
 import { AdminPage } from './pages/Admin/AdminPage'
 
@@ -37,6 +39,8 @@ function App() {
               <Route path={ROUTES.ANALYTICS} element={<AnalyticsPage />} />
               <Route path={ROUTES.HEATMAP} element={<HeatmapPage />} />
               <Route path={ROUTES.TRENDS} element={<TrendsPage />} />
+              <Route path={ROUTES.RECOMMENDATIONS} element={<RecommendationsPage />} />
+              <Route path={ROUTES.REPORTS} element={<ReportsPage />} />
               <Route path={ROUTES.PROFILE} element={<ProfilePage />} />
               <Route path={ROUTES.ADMIN} element={<AdminPage />} />
             </Route>

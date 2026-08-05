@@ -21,6 +21,8 @@ export const ROUTES = {
   ANALYTICS: '/analytics',
   HEATMAP: '/heatmap',
   TRENDS: '/trends',
+  RECOMMENDATIONS: '/recommendations',
+  REPORTS: '/reports',
   PROFILE: '/profile',
   ADMIN: '/admin',
 }

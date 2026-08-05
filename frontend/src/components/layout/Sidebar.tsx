@@ -12,7 +12,9 @@ import {
   LogOut,
   X,
   Activity,
-  Map
+  Map,
+  Lightbulb,
+  FileText
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { ROUTES } from '../../utils/constants'
@@ -39,6 +41,8 @@ export function Sidebar({ onClose }: SidebarProps) {
     { name: 'Analytics', path: ROUTES.ANALYTICS, icon: BarChart3 },
     { name: 'Interactive Heatmap', path: ROUTES.HEATMAP, icon: Map },
     { name: 'Traffic Trends', path: ROUTES.TRENDS, icon: Activity },
+    { name: 'AI Recommendations', path: ROUTES.RECOMMENDATIONS, icon: Lightbulb },
+    { name: 'AI Reports', path: ROUTES.REPORTS, icon: FileText },
     { name: 'User Profile', path: ROUTES.PROFILE, icon: User },
   ]
 

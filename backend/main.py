@@ -14,6 +14,8 @@ from api.alerts import router as alerts_router
 from analytics.router import router as analytics_router
 from heatmap.router import router as heatmap_router
 from trends.router import router as trends_router
+from recommendations.router import router as recommendations_router
+from reports.router import router as reports_router
 
 app = FastAPI(
     title="TrafficVision AI Backend",
@@ -49,6 +51,8 @@ app.include_router(alerts_router)
 app.include_router(analytics_router)
 app.include_router(heatmap_router)
 app.include_router(trends_router)
+app.include_router(recommendations_router)
+app.include_router(reports_router)
 
 @app.get("/")
 def read_root():
