@@ -32,13 +32,15 @@ Focuses on training predictive models, utilizing maps API interfaces, and calcul
 * **Maps & Traffic API Integration**: Integrates the TomTom Traffic API to fetch actual live traffic flows and incidents.
 * **Leaflet Map Routing & Travel Time Estimation**: Renders path overlays on interactive Leaflet Maps, showcasing the primary route versus recommended alternative routes alongside estimated travel times (ETAs).
 
-### 📍 Milestone 3: Traffic Alerts, Analytics, Heatmap & Trend Analysis
-Focuses on alert management workflows, dynamic charting analytics dashboards, geospatial leaflet heatmaps, and trend forecasters.
+### 📍 Milestone 3: Traffic Alerts, Analytics, Heatmap, Trends, AI Recommendations & Reports
+Focuses on alert management workflows, dynamic charting analytics dashboards, geospatial leaflet heatmaps, trend forecasters, and automated advisory compilers.
 * **Traffic Alert System**: Automatically generates critical alerts based on XGBoost model capacity thresholds. Allows operators and admins to view, search, acknowledge, resolve, and delete alerts with performance-optimized DB batch commits.
 * **Advanced Analytics Dashboard**: Houses 10 dynamic KPI metrics (vehicle totals, density ratios, travel times, prediction accuracy indices) and 5 interactive Recharts charts (hourly line chart, daily bar chart, congestion pie chart, vehicle category stacked chart, timeline density area chart).
 * **Interactive Congestion Heatmap**: OpenStreetMap Leaflet map drawing glowing congestion bubble overlays (Low $\to$ Green, Moderate $\to$ Yellow, High $\to$ Orange, Severe $\to$ Red) with time range sliders and markers toggle.
 * **AI-driven Traffic Trends & Insights**: Tabbed comparison timelines (hourly to monthly), road forecast overlay checks, and smart AI insights recommendation cards flagging bottlenecks and rush hour warning flags.
 * **High Performance Optimization**: Leverages NumPy and Pandas vectorized calculations on the 200k+ historical traffic dataset, reducing database aggregation wait times from 20 seconds to less than 20 milliseconds.
+* **AI Recommendation Engine**: Rule-based advisory engine scanning XGBoost batch predictions, active safety alert notifications, and historical bottlenecks to generate prioritized advisories (Traffic Signal tuning, alternate route diversions, police deployments) and track status life-cycles (Pending, Accepted, Implemented, Dismissed).
+* **AI Reports Module**: Compiles Daily, Weekly, and Monthly traffic performance digests. Generates visual summary metrics (vehicle volumes, peak congestion hours, accuracy metrics, incident logs) and exports binary file formats (ReportLab PDFs, OpenPyXL Excel worksheets, and CSV files).
 
 ---
 
@@ -50,6 +52,8 @@ Focuses on alert management workflows, dynamic charting analytics dashboards, ge
 | | PostgreSQL | Relational database (using SQLAlchemy & Alembic) |
 | | Pydantic v2 | Schema validation & configuration |
 | | python-jose | JWT validation for authentication |
+| | ReportLab | PDF export compiler library |
+| | OpenPyXL | Excel spreadsheet generation library |
 | **Frontend** | React 19 + TypeScript | Core component-based web framework |
 | | Vite | Fast frontend build tool & dev server |
 | | Tailwind CSS v4 | Styling and responsive layouts |
