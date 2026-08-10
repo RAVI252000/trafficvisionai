@@ -44,6 +44,11 @@ class AlertService:
         db.add(new_alert)
         db.commit()
         db.refresh(new_alert)
+        try:
+            from utils.email import send_alert_email
+            send_alert_email(new_alert)
+        except Exception as e:
+            print(f"Error triggering manual alert email: {e}")
         return new_alert
 
     def acknowledge_alert(self, db: Session, alert_id: int):
@@ -129,6 +134,11 @@ class AlertService:
                     )
                     db.add(new_alert)
                     changes_made = True
+                    try:
+                        from utils.email import send_alert_email
+                        send_alert_email(new_alert)
+                    except Exception as e:
+                        print(f"Error triggering alert email: {e}")
 
             # Threshold-based alerts logic
             if prediction_score > 0.90:
