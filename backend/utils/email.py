@@ -4,6 +4,7 @@ import urllib.request
 import urllib.error
 import threading
 from datetime import datetime
+from core.config import settings
 
 def send_alert_email(alert_obj):
     """
@@ -17,7 +18,7 @@ def send_alert_email(alert_obj):
 def _send_email_worker(alert_obj):
     # Fetch configurations
     to_email = "ravikishoresanku@gmail.com"
-    resend_api_key = os.getenv("RESEND_API_KEY", "")
+    resend_api_key = settings.RESEND_API_KEY or os.getenv("RESEND_API_KEY", "")
 
     # Determine severity color representation
     severity_obj = getattr(alert_obj, "severity", "Medium")

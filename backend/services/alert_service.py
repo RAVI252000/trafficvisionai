@@ -91,8 +91,8 @@ class AlertService:
             print(f"Error fetching predictions for alert generation: {e}")
             return
 
-        # Fetch all active alerts once to avoid query-in-loop
-        active_alerts = db.query(Alert).filter(Alert.status == AlertStatus.ACTIVE).all()
+        # Fetch all active and acknowledged alerts once to avoid query-in-loop
+        active_alerts = db.query(Alert).filter(Alert.status.in_([AlertStatus.ACTIVE, AlertStatus.ACKNOWLEDGED])).all()
         active_alerts_map = {(a.road_name, a.alert_type): a for a in active_alerts}
 
         changes_made = False
