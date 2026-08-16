@@ -31,7 +31,7 @@ services:
       - TOMTOM_API_KEY=${TOMTOM_API_KEY}
       - RESEND_API_KEY=${RESEND_API_KEY}
       - USE_INDIAN_DATASET=True
-      - ALLOWED_ORIGINS=http://localhost,http://localhost:5173,http://localhost:80,http://127.0.0.1
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost,http://localhost:5173,http://localhost:80,http://127.0.0.1}
     ports:
       - "8000:8000"
     depends_on:
