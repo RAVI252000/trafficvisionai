@@ -54,7 +54,7 @@ function StatCard({ title, value, change, changeType, icon, color }: StatCardPro
         <h3 className="text-2xl font-bold tracking-tight text-tv-text">{value}</h3>
         <span
           className={`inline-flex items-center gap-1 text-[10px] font-bold rounded-lg px-2 py-0.5
-            ${isPositive ? 'bg-tv-emerald/10 text-tv-emerald' : isNegative ? 'bg-red-500/10 text-red-400' : 'bg-white/10 text-tv-muted'}
+            ${isPositive ? 'bg-tv-emerald/10 text-tv-emerald' : isNegative ? 'bg-red-500/10 text-red-500' : 'bg-black/[0.04] text-tv-muted'}
           `}
         >
           {isPositive ? <ArrowUpRight className="h-3 w-3" /> : isNegative ? <ArrowDownRight className="h-3.5 w-3.5" /> : null}
@@ -226,7 +226,7 @@ export function DashboardPage() {
           <button
             onClick={handleRefresh}
             disabled={refreshing}
-            className="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 text-xs font-semibold text-tv-text transition-all hover:bg-white/[0.08] disabled:opacity-50 cursor-pointer"
+            className="flex items-center gap-2 rounded-xl border border-tv-border bg-tv-surface px-4 py-2.5 text-xs font-semibold text-tv-text transition-all hover:bg-black/[0.03] disabled:opacity-50 cursor-pointer"
           >
             <RefreshCw className={`h-4 w-4 text-tv-primary ${refreshing ? 'animate-spin' : ''}`} />
             <span>{refreshing ? 'Syncing...' : 'Refresh Metrics'}</span>
@@ -270,8 +270,8 @@ export function DashboardPage() {
           value={`${Math.round(forecast.confidence * 100)}%`}
           change="XGBoost R²"
           changeType="positive"
-          icon={<Sparkles className="h-5 w-5 text-blue-400" />}
-          color="text-blue-400 bg-blue-500"
+          icon={<Sparkles className="h-5 w-5 text-tv-primary" />}
+          color="text-tv-primary bg-blue-500"
         />
         <StatCard
           title="Hotspot Locations"
@@ -287,8 +287,8 @@ export function DashboardPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         
         {/* Map Preview Card */}
-        <div className="lg:col-span-7 flex flex-col h-[480px] rounded-2xl border border-white/[0.08] bg-[#1E293B] overflow-hidden">
-          <div className="flex items-center justify-between border-b border-white/[0.06] px-5 py-4">
+        <div className="lg:col-span-7 flex flex-col h-[480px] rounded-2xl border border-tv-border bg-tv-surface overflow-hidden">
+          <div className="flex items-center justify-between border-b border-tv-border px-5 py-4">
             <div className="flex items-center gap-2">
               <Compass className="h-5 w-5 text-tv-primary animate-pulse" />
               <span className="text-sm font-bold text-tv-text">Live Traffic Hotspots Map Preview</span>
@@ -307,8 +307,8 @@ export function DashboardPage() {
               zoomControl={false}
             >
               <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                attribution='&copy; Google Maps'
+                url="https://mt1.google.com/vt/lyrs=m,traffic&x={x}&y={y}&z={z}"
               />
               {checkpoints.map((pt, idx) => (
                 <Circle
@@ -337,13 +337,13 @@ export function DashboardPage() {
         </div>
 
         {/* Charts and default road forecast trend Box */}
-        <div className="lg:col-span-5 flex flex-col h-[480px] rounded-2xl border border-white/[0.08] bg-[#1E293B] overflow-hidden">
-          <div className="border-b border-white/[0.06] px-5 py-4 flex items-center justify-between">
+        <div className="lg:col-span-5 flex flex-col h-[480px] rounded-2xl border border-tv-border bg-tv-surface overflow-hidden">
+          <div className="border-b border-tv-border px-5 py-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-tv-primary" />
               <span className="text-sm font-bold text-tv-text">Forecast Volume Curve ({forecast.defaultRoadName})</span>
             </div>
-            <span className="text-[10px] bg-white/[0.03] border border-white/[0.06] px-2 py-0.5 rounded text-tv-muted uppercase font-bold">24-Hour</span>
+            <span className="text-[10px] bg-black/[0.02] border border-tv-border px-2 py-0.5 rounded text-tv-muted uppercase font-bold">24-Hour</span>
           </div>
           <div className="flex-1 p-5 min-h-0 flex flex-col justify-between">
             <div className="h-[280px] w-full">
@@ -351,34 +351,34 @@ export function DashboardPage() {
                 <AreaChart data={hourlyData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorVolumeDash" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#2563eb" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#ff5b00" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#ff5b00" stopOpacity={0}/>
                     </linearGradient>
                     <linearGradient id="colorCongestionDash" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.2}/>
                       <stop offset="95%" stopColor="#F59E0B" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.02)" vertical={false} />
-                  <XAxis dataKey="time" stroke="#94A3B8" fontSize={10} tickLine={false} />
-                  <YAxis stroke="#94A3B8" fontSize={10} tickLine={false} axisLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" vertical={false} />
+                  <XAxis dataKey="time" stroke="#64748b" fontSize={10} tickLine={false} />
+                  <YAxis stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: '#1E293B',
-                      borderColor: 'rgba(255,255,255,0.08)',
+                      backgroundColor: '#ffffff',
+                      borderColor: '#e2e8f0',
                       borderRadius: '12px',
-                      color: '#F8FAFC',
+                      color: '#0f172a',
                       fontSize: '11px'
                     }}
                   />
-                  <Area type="monotone" dataKey="volume" name="Volume (/hr)" stroke="#2563eb" strokeWidth={2} fillOpacity={1} fill="url(#colorVolumeDash)" />
+                  <Area type="monotone" dataKey="volume" name="Volume (/hr)" stroke="#ff5b00" strokeWidth={2} fillOpacity={1} fill="url(#colorVolumeDash)" />
                   <Area type="monotone" dataKey="congestion" name="Congestion %" stroke="#F59E0B" strokeWidth={1.5} fillOpacity={1} fill="url(#colorCongestionDash)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
             
             {/* Live Prediction Widget Info */}
-            <div className="bg-white/[0.01] border border-white/[0.04] p-3 rounded-xl flex items-center justify-between text-xs mt-3">
+            <div className="bg-black/[0.01] border border-tv-border p-3 rounded-xl flex items-center justify-between text-xs mt-3">
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-tv-primary" />
                 <div>
@@ -400,12 +400,12 @@ export function DashboardPage() {
         {/* Widget 1: Top Congested Roads & Congestion Trends */}
         <div className="tv-glass rounded-2xl p-5 flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between border-b border-white/[0.04] pb-3 mb-4">
+            <div className="flex items-center justify-between border-b border-tv-border pb-3 mb-4">
               <span className="text-sm font-bold text-tv-text flex items-center gap-2">
-                <ShieldAlert className="h-4.5 w-4.5 text-red-400" />
+                <ShieldAlert className="h-4.5 w-4.5 text-red-500" />
                 Top Congested Checkpoints
               </span>
-              <span className="text-[10px] uppercase font-bold tracking-wider text-red-400">Bottlenecks</span>
+              <span className="text-[10px] uppercase font-bold tracking-wider text-red-500">Bottlenecks</span>
             </div>
 
             <div className="space-y-3">
@@ -417,7 +417,7 @@ export function DashboardPage() {
                   .map((road, idx) => {
                     const statusColor = getStatusColor(road.congestion_index)
                     return (
-                      <div key={idx} className="bg-white/[0.01] border border-white/[0.04] p-2.5 rounded-xl space-y-1.5">
+                      <div key={idx} className="bg-black/[0.01] border border-tv-border p-2.5 rounded-xl space-y-1.5">
                         <div className="flex justify-between items-center text-xs">
                           <span className="font-bold text-tv-text flex items-center gap-1.5">
                             <span className="h-2 w-2 rounded-full" style={{ backgroundColor: statusColor }}></span>
@@ -425,7 +425,7 @@ export function DashboardPage() {
                           </span>
                           <span className="font-bold text-tv-text">{road.congestion_index}%</span>
                         </div>
-                        <div className="w-full bg-white/[0.08] h-1 rounded-full overflow-hidden">
+                        <div className="w-full bg-black/[0.08] h-1 rounded-full overflow-hidden">
                           <div
                             className="h-full rounded-full"
                             style={{
@@ -442,7 +442,7 @@ export function DashboardPage() {
               )}
             </div>
           </div>
-          <div className="mt-4 pt-3 border-t border-white/[0.04] text-[10px] text-tv-muted flex items-center gap-1.5">
+          <div className="mt-4 pt-3 border-t border-tv-border text-[10px] text-tv-muted flex items-center gap-1.5">
             <Info className="h-3.5 w-3.5 text-tv-primary flex-shrink-0" />
             <span>Updated live from XGBoost capacity evaluation.</span>
           </div>
@@ -451,7 +451,7 @@ export function DashboardPage() {
         {/* Widget 2: Recent Logs Log (Predictions & Route analysis) */}
         <div className="tv-glass rounded-2xl p-5 flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between border-b border-white/[0.04] pb-3 mb-4">
+            <div className="flex items-center justify-between border-b border-tv-border pb-3 mb-4">
               <span className="text-sm font-bold text-tv-text flex items-center gap-2">
                 <Route className="h-4.5 w-4.5 text-tv-primary" />
                 Recent System Activity Log
@@ -465,7 +465,7 @@ export function DashboardPage() {
                 <CheckCircle2 className="h-3.5 w-3.5 text-tv-emerald" /> Recent Predictions
               </h5>
               {recentPredictions.map((pred, index) => (
-                <div key={index} className="flex justify-between items-center text-[11px] py-1 border-b border-white/[0.02] text-tv-muted">
+                <div key={index} className="flex justify-between items-center text-[11px] py-1 border-b border-tv-border text-tv-muted">
                   <span className="font-semibold text-tv-text">{pred.road} evaluation</span>
                   <div className="flex gap-2.5 items-center">
                     <span>{pred.volume} /hr</span>
@@ -481,7 +481,7 @@ export function DashboardPage() {
                 <Navigation className="h-3.5 w-3.5 text-tv-primary" /> Recent Route Requests
               </h5>
               {recentRoutes.map((route, index) => (
-                <div key={index} className="text-[11px] p-1.5 rounded bg-white/[0.01] border border-white/[0.03] space-y-0.5">
+                <div key={index} className="text-[11px] p-1.5 rounded bg-black/[0.01] border border-tv-border space-y-0.5">
                   <div className="flex justify-between text-tv-text font-semibold">
                     <span>{route.from} &rarr; {route.to}</span>
                     <span className="text-tv-primary font-bold">{route.distance}</span>
@@ -496,16 +496,16 @@ export function DashboardPage() {
         {/* Widget 3: Live Incident Alerts (Safety Warnings) */}
         <div className="tv-glass rounded-2xl p-5 flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between border-b border-white/[0.04] pb-3 mb-4">
+            <div className="flex items-center justify-between border-b border-tv-border pb-3 mb-4">
               <span className="text-sm font-bold text-tv-text flex items-center gap-2">
-                <Bell className="h-4.5 w-4.5 text-red-400 animate-swing" />
+                <Bell className="h-4.5 w-4.5 text-red-500 animate-swing" />
                 Active Alerts &amp; Advisories
               </span>
-              <span className="text-[10px] font-bold text-red-400">Critical</span>
+              <span className="text-[10px] font-bold text-red-500">Critical</span>
             </div>
             
             <div className="space-y-3">
-              <div className="flex items-start gap-3 rounded-lg hover:bg-white/[0.02] p-1.5 transition-colors">
+              <div className="flex items-start gap-3 rounded-lg hover:bg-black/[0.02] p-1.5 transition-colors">
                 <span className="h-2 w-2 mt-1.5 rounded-full bg-red-500 shrink-0 animate-pulse" />
                 <div>
                   <span className="block text-xs font-semibold text-tv-text leading-tight">Congestion Bypass Suggested: A3112</span>
@@ -513,7 +513,7 @@ export function DashboardPage() {
                 </div>
               </div>
 
-              <div className="flex items-start gap-3 rounded-lg hover:bg-white/[0.02] p-1.5 transition-colors">
+              <div className="flex items-start gap-3 rounded-lg hover:bg-black/[0.02] p-1.5 transition-colors">
                 <span className="h-2 w-2 mt-1.5 rounded-full bg-tv-orange shrink-0" />
                 <div>
                   <span className="block text-xs font-semibold text-tv-text leading-tight">Safety Advisory: South West Area</span>
@@ -521,7 +521,7 @@ export function DashboardPage() {
                 </div>
               </div>
 
-              <div className="flex items-start gap-3 rounded-lg hover:bg-white/[0.02] p-1.5 transition-colors">
+              <div className="flex items-start gap-3 rounded-lg hover:bg-black/[0.02] p-1.5 transition-colors">
                 <span className="h-2 w-2 mt-1.5 rounded-full bg-tv-emerald shrink-0" />
                 <div>
                   <span className="block text-xs font-semibold text-tv-text leading-tight">Calibration completed: XGBoost volume</span>
@@ -531,8 +531,8 @@ export function DashboardPage() {
             </div>
           </div>
           
-          <div className="mt-4 pt-3 border-t border-white/[0.04]">
-            <button className="flex w-full items-center justify-center gap-1 text-xs font-bold text-tv-primary hover:text-blue-400 transition-colors cursor-pointer">
+          <div className="mt-4 pt-3 border-t border-tv-border">
+            <button className="flex w-full items-center justify-center gap-1 text-xs font-bold text-tv-primary hover:text-orange-600 transition-colors cursor-pointer">
               <Navigation className="h-3.5 w-3.5" /> Optimize Routes Now
             </button>
           </div>

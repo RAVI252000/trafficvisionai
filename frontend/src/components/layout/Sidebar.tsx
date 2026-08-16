@@ -57,11 +57,11 @@ export function Sidebar({ onClose }: SidebarProps) {
   }
 
   return (
-    <div className="flex h-full w-64 flex-col border-r border-white/[0.06] bg-[#0F172A] px-5 py-6">
+    <div className="flex h-full w-64 flex-col border-r border-tv-border bg-tv-surface px-5 py-6">
       {/* Sidebar Header */}
       <div className="mb-8 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-tv-primary to-blue-400 shadow-md shadow-blue-500/20">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-tv-primary to-amber-500 shadow-md shadow-tv-primary/20">
             <Activity className="h-5.5 w-5.5 text-white" />
           </div>
           <div>
@@ -72,7 +72,7 @@ export function Sidebar({ onClose }: SidebarProps) {
         {onClose && (
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-tv-muted hover:bg-white/[0.04] hover:text-tv-text lg:hidden"
+            className="rounded-lg p-1.5 text-tv-muted hover:bg-black/[0.04] hover:text-tv-text lg:hidden"
             aria-label="Close menu"
           >
             <X className="h-5 w-5" />
@@ -97,14 +97,14 @@ export function Sidebar({ onClose }: SidebarProps) {
                 ${
                   isActive
                     ? 'text-white'
-                    : 'text-tv-muted hover:bg-white/[0.03] hover:text-tv-text'
+                    : 'text-tv-muted hover:bg-black/[0.03] hover:text-tv-text'
                 }
               `}
             >
               {isActive && (
                 <motion.div
                   layoutId="sidebarActiveBackground"
-                  className="absolute inset-0 rounded-xl bg-gradient-to-r from-tv-primary/20 to-blue-500/[0.04] border-l-2 border-tv-primary"
+                  className="absolute inset-0 rounded-xl bg-gradient-to-r from-tv-primary/15 to-transparent border-l-2 border-tv-primary"
                   transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                 />
               )}
@@ -116,7 +116,7 @@ export function Sidebar({ onClose }: SidebarProps) {
       </nav>
 
       {/* Sidebar Footer */}
-      <div className="mt-auto border-t border-white/[0.06] pt-4">
+      <div className="mt-auto border-t border-tv-border pt-4">
         {user && (
           <div className="mb-4 flex items-center gap-3 px-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-tv-primary/20 text-sm font-semibold text-tv-primary border border-tv-primary/30 uppercase">
@@ -130,7 +130,7 @@ export function Sidebar({ onClose }: SidebarProps) {
         )}
         <button
           onClick={handleLogout}
-          className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-red-400 transition-colors duration-200 hover:bg-red-500/10 hover:text-red-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/50"
+          className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-red-550 transition-colors duration-200 hover:bg-red-50 hover:text-red-650 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/50"
         >
           <LogOut className="h-5 w-5" />
           <span>Sign Out</span>

@@ -25,20 +25,20 @@ export function SmartCityIllustration() {
       >
         <defs>
           <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#1e293b" stopOpacity="0.4" />
-            <stop offset="100%" stopColor="#0f172a" stopOpacity="0" />
+            <stop offset="0%" stopColor="#111317" stopOpacity="0.4" />
+            <stop offset="100%" stopColor="#08090a" stopOpacity="0" />
           </linearGradient>
 
           <linearGradient id="roadGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#2563EB" stopOpacity="0.1" />
-            <stop offset="50%" stopColor="#2563EB" stopOpacity="0.5" />
-            <stop offset="100%" stopColor="#10B981" stopOpacity="0.3" />
+            <stop offset="0%" stopColor="#ff5b00" stopOpacity="0.1" />
+            <stop offset="50%" stopColor="#ff5b00" stopOpacity="0.5" />
+            <stop offset="100%" stopColor="#00bd56" stopOpacity="0.3" />
           </linearGradient>
 
           <linearGradient id="trafficGlow" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#2563EB" stopOpacity="0" />
-            <stop offset="50%" stopColor="#2563EB" stopOpacity="1" />
-            <stop offset="100%" stopColor="#2563EB" stopOpacity="0" />
+            <stop offset="0%" stopColor="#ff5b00" stopOpacity="0" />
+            <stop offset="50%" stopColor="#ff5b00" stopOpacity="1" />
+            <stop offset="100%" stopColor="#ff5b00" stopOpacity="0" />
           </linearGradient>
 
           <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
@@ -66,7 +66,7 @@ export function SmartCityIllustration() {
           {[40, 80, 130, 180, 240, 300, 360, 420, 480, 540, 600, 660, 720, 760].map(
             (x, i) => {
               const h = 60 + (i % 5) * 35 + (i % 3) * 20
-              return (
+               return (
                 <rect
                   key={x}
                   x={x}
@@ -74,7 +74,7 @@ export function SmartCityIllustration() {
                   width={18 + (i % 4) * 8}
                   height={h}
                   rx="2"
-                  fill="#1E293B"
+                  fill="#111317"
                   stroke="rgba(255,255,255,0.06)"
                   strokeWidth="0.5"
                 />
@@ -96,7 +96,7 @@ export function SmartCityIllustration() {
         {/* Base road surface */}
         <path
           d="M 0 380 Q 200 370 400 385 T 800 375 L 800 520 L 0 520 Z"
-          fill="#1E293B"
+          fill="#111317"
           opacity="0.6"
         />
 

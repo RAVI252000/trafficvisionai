@@ -20,21 +20,53 @@ class ReportsService:
         self.load_data()
 
     def load_data(self):
+        from core.config import settings
+        
+        # Load metadata first
+        metadata_file = "road_metadata_bengaluru.json" if settings.USE_INDIAN_DATASET else "road_metadata.json"
+        metadata_path = os.path.join(self.project_root, "ai_models", "saved_models", metadata_file)
+        
+        if os.path.exists(metadata_path):
+            try:
+                with open(metadata_path, 'r') as f:
+                    self.road_metadata = json.load(f)
+                print(f"ReportsService successfully loaded {len(self.road_metadata)} roads metadata from {metadata_file}.")
+            except Exception as e:
+                print(f"Error loading road metadata in reports service: {e}")
+
+        # Load main DataFrame
         if os.path.exists(self.data_path):
             try:
                 self.df = pd.read_csv(self.data_path)
                 print(f"ReportsService successfully loaded {len(self.df)} traffic records.")
+                
+                # Transform DataFrame if using Indian dataset
+                if settings.USE_INDIAN_DATASET and self.road_metadata:
+                    roads = list(self.road_metadata.keys())
+                    np.random.seed(42)  # For reproducible mapping
+                    road_choices = np.random.choice(roads, size=len(self.df))
+                    
+                    self.df['road_name'] = road_choices
+                    self.df['region_name'] = "Karnataka"
+                    self.df['local_authority_name'] = "BBMP (Bengaluru)"
+                    self.df['region_id'] = 1
+                    self.df['local_authority_id'] = 1
+                    
+                    lats = [self.road_metadata[r]["latitude"] for r in road_choices]
+                    lngs = [self.road_metadata[r]["longitude"] for r in road_choices]
+                    road_types = [self.road_metadata[r]["road_type"] for r in road_choices]
+                    road_type_codes = [self.road_metadata[r]["road_type_code"] for r in road_choices]
+                    
+                    self.df['latitude'] = lats
+                    self.df['longitude'] = lngs
+                    self.df['road_type'] = road_types
+                    self.df['road_type_code'] = road_type_codes
+                    
+                    print("ReportsService successfully mapped dataset to Indian Bengaluru region.")
             except Exception as e:
-                print(f"Error loading reports dataset: {e}")
+                print(f"Error loading and mapping reports dataset: {e}")
         else:
             print(f"Reports data not found at {self.data_path}")
-
-        if os.path.exists(self.metadata_path):
-            try:
-                with open(self.metadata_path, 'r') as f:
-                    self.road_metadata = json.load(f)
-            except Exception as e:
-                print(f"Error loading road metadata in reports service: {e}")
 
         if os.path.exists(self.model_path):
             try:

@@ -33,7 +33,7 @@ export function AnimatedBackground() {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
       {/* Radial gradient depth */}
-      <div className="absolute inset-0 bg-gradient-to-br from-tv-bg via-[#0c1222] to-[#0a0f1a]" />
+      <div className="absolute inset-0 bg-gradient-to-br from-tv-bg via-[#0f0e0d] to-[#08090a]" />
 
       {/* Soft primary glow */}
       <div className="absolute -top-1/4 left-1/4 h-[600px] w-[600px] rounded-full bg-tv-primary/[0.06] blur-[120px]" />
@@ -55,7 +55,7 @@ export function AnimatedBackground() {
             y1={line.y1}
             x2={line.x2}
             y2={line.y2}
-            stroke="rgba(37, 99, 235, 0.15)"
+            stroke="rgba(255, 91, 0, 0.15)"
             strokeWidth="0.08"
             animate={{ opacity: [0.06, 0.22, 0.06] }}
             transition={{

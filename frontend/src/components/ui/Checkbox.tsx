@@ -28,12 +28,12 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
           />
           <span
             className="
-              absolute inset-0 rounded-[5px] border border-white/[0.15]
+              absolute inset-0 rounded-[5px] border border-tv-border
               bg-tv-bg/60 transition-all duration-200
               peer-checked:border-tv-primary peer-checked:bg-tv-primary
               peer-focus-visible:outline peer-focus-visible:outline-2
               peer-focus-visible:outline-offset-2 peer-focus-visible:outline-tv-primary
-              group-hover:border-white/[0.25]
+              group-hover:border-tv-muted/40
             "
             aria-hidden="true"
           />

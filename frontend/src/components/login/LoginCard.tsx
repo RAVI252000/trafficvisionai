@@ -122,7 +122,7 @@ export function LoginCard() {
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.4, delay: 0.25 }}
-          className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-tv-primary to-blue-400 shadow-lg shadow-blue-500/25"
+          className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-tv-primary to-amber-500 shadow-lg shadow-tv-primary/25"
         >
           <Activity className="h-6 w-6 text-white" aria-hidden="true" />
         </motion.div>
@@ -202,7 +202,7 @@ export function LoginCard() {
           />
           <a
             href="#"
-            className="tv-focus-ring rounded-md text-sm font-medium text-tv-primary transition-colors hover:text-blue-400"
+            className="tv-focus-ring rounded-md text-sm font-medium text-tv-primary transition-colors hover:text-orange-400"
             onClick={(e) => e.preventDefault()}
           >
             Forgot Password?

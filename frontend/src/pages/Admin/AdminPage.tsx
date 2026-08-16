@@ -160,7 +160,7 @@ export function AdminPage() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => handleOpenModal(user)}
-            className="rounded-lg p-1.5 text-tv-muted transition-colors hover:bg-white/[0.08] hover:text-tv-text"
+            className="rounded-lg p-1.5 text-tv-muted transition-colors hover:bg-black/[0.04] hover:text-tv-text"
           >
             <Edit2 className="h-4 w-4" />
           </button>
@@ -183,7 +183,7 @@ export function AdminPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-4 border-b border-white/[0.08]">
+      <div className="flex gap-4 border-b border-tv-border">
         <button
           onClick={() => setActiveTab('users')}
           className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
@@ -280,7 +280,7 @@ export function AdminPage() {
             >
                <h3 className="text-lg font-semibold text-tv-text mb-4">Global Alert Preferences</h3>
                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 rounded-xl border border-white/[0.08] bg-white/[0.02]">
+                  <div className="flex items-center justify-between p-4 rounded-xl border border-tv-border bg-black/[0.02]">
                     <div>
                       <h4 className="font-medium text-tv-text">Critical Incident Emails</h4>
                       <p className="text-sm text-tv-muted mt-1">Send emails to all operators when a critical incident occurs.</p>
@@ -291,7 +291,7 @@ export function AdminPage() {
                     </div>
                   </div>
                   
-                  <div className="flex items-center justify-between p-4 rounded-xl border border-white/[0.08] bg-white/[0.02]">
+                  <div className="flex items-center justify-between p-4 rounded-xl border border-tv-border bg-black/[0.02]">
                     <div>
                       <h4 className="font-medium text-tv-text">Daily Analytics Digest</h4>
                       <p className="text-sm text-tv-muted mt-1">Automated daily reports summarizing traffic flow and predictions.</p>
@@ -320,7 +320,7 @@ export function AdminPage() {
             <select 
               value={role} 
               onChange={(e) => setRole(e.target.value as UserRole)}
-              className="tv-focus-ring h-12 w-full rounded-xl border border-white/[0.08] bg-tv-bg/60 px-4 text-[15px] font-normal text-tv-text focus:outline-none focus:border-tv-primary focus:shadow-[0_0_0_3px_rgba(37,99,235,0.2)]"
+              className="tv-focus-ring h-12 w-full rounded-xl border border-tv-border bg-tv-bg/60 px-4 text-[15px] font-normal text-tv-text focus:outline-none focus:border-tv-primary focus:shadow-[0_0_0_3px_rgba(37,99,235,0.2)]"
             >
               <option value="TRAFFIC_OPERATOR">Traffic Operator</option>
               <option value="ADMIN">Admin</option>

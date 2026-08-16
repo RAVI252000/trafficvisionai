@@ -18,18 +18,22 @@ class PredictionService:
         self.load_artifacts()
 
     def load_artifacts(self):
+        from core.config import settings
         if os.path.exists(self.model_path):
             self.model = joblib.load(self.model_path)
             print("Backend prediction service successfully loaded traffic model.")
         else:
             print(f"Backend Warning: Model not found at {self.model_path}")
 
-        if os.path.exists(self.metadata_path):
-            with open(self.metadata_path, 'r') as f:
+        metadata_file = "road_metadata_bengaluru.json" if settings.USE_INDIAN_DATASET else "road_metadata.json"
+        metadata_path = os.path.join(self.project_root, "ai_models", "saved_models", metadata_file)
+
+        if os.path.exists(metadata_path):
+            with open(metadata_path, 'r') as f:
                 self.road_metadata = json.load(f)
-            print(f"Backend prediction service successfully loaded {len(self.road_metadata)} roads metadata.")
+            print(f"Backend prediction service successfully loaded {len(self.road_metadata)} roads metadata from {metadata_file}.")
         else:
-            print(f"Backend Warning: Road metadata not found at {self.metadata_path}")
+            print(f"Backend Warning: Road metadata not found at {metadata_path}")
 
     def get_available_roads(self):
         # Reload dynamically if not loaded at startup (e.g. trained later)
@@ -164,11 +168,53 @@ class PredictionService:
         }
 
     def get_monitoring_status_batch(self):
+        from core.config import settings
         if self.model is None or not self.road_metadata:
             self.load_artifacts()
             
-        if self.model is None or not self.road_metadata:
+        if not self.road_metadata:
             return []
+
+        # If USE_INDIAN_DATASET is True, fetch actual live traffic from the TomTom Traffic API
+        if settings.USE_INDIAN_DATASET:
+            from services.traffic_api_service import traffic_api_service
+            status_list = []
+            for road_name, meta in self.road_metadata.items():
+                lat = meta.get("latitude", 12.9716)
+                lon = meta.get("longitude", 77.5946)
+                
+                # Fetch actual live flow from TomTom (or coordinates-based simulation fallback if no API key)
+                live_flow = traffic_api_service.fetch_live_traffic_flow(lat, lon)
+                import time
+                time.sleep(0.25)
+                
+                congestion_pct = live_flow.get("congestion_index", 0)
+                current_speed = live_flow.get("current_speed", 40)
+                capacity = meta.get("capacity", 2000.0)
+                
+                # Back-calculate volume based on congestion percentage
+                pred_volume = float((congestion_pct / 100.0) * capacity)
+                
+                if congestion_pct < 30.0:
+                    status = "CLEAR"
+                elif congestion_pct < 60.0:
+                    status = "MODERATE"
+                elif congestion_pct < 85.0:
+                    status = "HEAVY"
+                else:
+                    status = "BLOCKED"
+                
+                status_list.append({
+                    "road_name": road_name,
+                    "road_type": meta.get("road_type", "Major Road"),
+                    "latitude": lat,
+                    "longitude": lon,
+                    "congestion_index": int(round(congestion_pct)),
+                    "congestion_status": status,
+                    "predicted_volume": max(100, int(round(pred_volume))),
+                    "confidence": live_flow.get("confidence", 0.90)
+                })
+            return status_list
 
         now = datetime.now()
         hour = now.hour

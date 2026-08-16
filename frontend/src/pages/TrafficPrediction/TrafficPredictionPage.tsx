@@ -183,9 +183,9 @@ export function TrafficPredictionPage() {
         </div>
 
         {/* Filters Panel */}
-        <div className="flex flex-wrap items-center gap-3 bg-white/[0.02] border border-white/[0.06] p-3 rounded-2xl backdrop-blur-md">
+        <div className="flex flex-wrap items-center gap-3 bg-black/[0.02] border border-tv-border p-3 rounded-2xl backdrop-blur-md">
           {/* Road Dropdown */}
-          <div className="relative flex items-center bg-tv-surface border border-white/[0.08] px-3 py-2 rounded-xl">
+          <div className="relative flex items-center bg-tv-surface border border-tv-border px-3 py-2 rounded-xl">
             <Search className="h-4 w-4 text-tv-muted mr-2" />
             <select
               value={selectedRoad}
@@ -201,7 +201,7 @@ export function TrafficPredictionPage() {
           </div>
 
           {/* Date Picker */}
-          <div className="flex items-center gap-2 bg-tv-surface border border-white/[0.08] px-3 py-2 rounded-xl">
+          <div className="flex items-center gap-2 bg-tv-surface border border-tv-border px-3 py-2 rounded-xl">
             <Calendar className="h-4 w-4 text-tv-primary" />
             <input
               type="date"
@@ -214,7 +214,7 @@ export function TrafficPredictionPage() {
       </div>
 
       {/* Tabs Segment Control */}
-      <div className="flex border-b border-white/[0.06] pb-0.5">
+      <div className="flex border-b border-tv-border pb-0.5">
         <button
           onClick={() => setActiveTab('hourly')}
           className={`px-5 py-3 text-sm font-semibold border-b-2 transition-all cursor-pointer ${
@@ -297,7 +297,7 @@ export function TrafficPredictionPage() {
                   <h3 className="text-2xl font-bold mt-1 text-tv-text">{Math.round(forecastData.confidence * 100)}%</h3>
                   <p className="text-xs text-tv-muted mt-1">R² score validation rate</p>
                 </div>
-                <div className="p-3.5 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                <div className="p-3.5 rounded-xl bg-tv-primary/10 text-tv-primary border border-tv-primary/20">
                   <Sparkles className="h-6 w-6" />
                 </div>
               </motion.div>
@@ -342,8 +342,8 @@ export function TrafficPredictionPage() {
                       >
                         <defs>
                           <linearGradient id="colorVolume" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#2563eb" stopOpacity={0.25} />
-                            <stop offset="95%" stopColor="#2563eb" stopOpacity={0.0} />
+                            <stop offset="5%" stopColor="#ff5b00" stopOpacity={0.25} />
+                            <stop offset="95%" stopColor="#ff5b00" stopOpacity={0.0} />
                           </linearGradient>
                           <linearGradient id="colorCongestion" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.25} />
@@ -387,7 +387,7 @@ export function TrafficPredictionPage() {
                           yAxisId="left"
                           type="monotone"
                           dataKey="predicted_volume"
-                          stroke="#2563eb"
+                          stroke="#ff5b00"
                           strokeWidth={2.5}
                           fillOpacity={1}
                           fill="url(#colorVolume)"
@@ -407,7 +407,7 @@ export function TrafficPredictionPage() {
                 </div>
 
                 {/* Hour Slider Control */}
-                <div className="mt-6 border-t border-white/[0.05] pt-5">
+                <div className="mt-6 border-t border-tv-border pt-5">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm font-semibold text-tv-text">
                       Inspect Hour: <span className="text-tv-primary font-bold">{String(selectedHour).padStart(2, '0')}:00</span>
@@ -420,7 +420,7 @@ export function TrafficPredictionPage() {
                     max="23"
                     value={selectedHour}
                     onChange={(e) => setSelectedHour(parseInt(e.target.value))}
-                    className="w-full h-1.5 bg-white/[0.08] rounded-lg appearance-none cursor-pointer accent-tv-primary focus:outline-none"
+                    className="w-full h-1.5 bg-black/[0.04] rounded-lg appearance-none cursor-pointer accent-tv-primary focus:outline-none"
                   />
                 </div>
               </motion.div>
@@ -430,7 +430,7 @@ export function TrafficPredictionPage() {
                 
                 {/* Embedded Map Card */}
                 <motion.div variants={cardVariants} className="tv-glass p-5 rounded-2xl h-[240px] flex flex-col justify-between overflow-hidden relative">
-                  <div className="z-10 bg-tv-surface/90 border border-white/[0.05] p-3 rounded-xl absolute top-3 left-3 shadow-lg max-w-[220px]">
+                  <div className="z-10 bg-tv-surface/90 border border-tv-border p-3 rounded-xl absolute top-3 left-3 shadow-lg max-w-[220px]">
                     <h4 className="text-xs font-bold text-tv-text flex items-center gap-1.5">
                       <MapPin className="h-3.5 w-3.5 text-tv-primary" />
                       {forecastData.road_name} ({forecastData.road_type} Road)
@@ -448,8 +448,8 @@ export function TrafficPredictionPage() {
                       className="h-full w-full"
                     >
                       <TileLayer
-                        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        url="https://mt1.google.com/vt/lyrs=m,traffic&x={x}&y={y}&z={z}"
+                        attribution='&copy; Google Maps'
                       />
                       <Circle
                         center={[forecastData.latitude, forecastData.longitude]}
@@ -476,7 +476,7 @@ export function TrafficPredictionPage() {
 
                 {/* Live Info Card */}
                 <motion.div variants={cardVariants} className="tv-glass p-5 rounded-2xl">
-                  <h4 className="text-sm font-bold text-tv-text flex items-center gap-1.5 border-b border-white/[0.05] pb-3 mb-3">
+                  <h4 className="text-sm font-bold text-tv-text flex items-center gap-1.5 border-b border-tv-border pb-3 mb-3">
                     <Info className="h-4 w-4 text-tv-orange" />
                     Hourly Prediction Summary
                   </h4>
@@ -511,7 +511,7 @@ export function TrafficPredictionPage() {
                   <h3 className="text-lg font-bold text-tv-text">Predicted Vehicle Distribution breakdown</h3>
                   <p className="text-xs text-tv-muted">Vehicle categorization forecast for {String(selectedHour).padStart(2, '0')}:00</p>
                 </div>
-                <div className="text-xs bg-white/[0.03] border border-white/[0.06] px-3.5 py-1.5 rounded-xl font-medium text-tv-text">
+                <div className="text-xs bg-black/[0.03] border border-tv-border px-3.5 py-1.5 rounded-xl font-medium text-tv-text">
                   Total Predicted Flow: <span className="text-tv-primary font-bold">{(activeForecast?.predicted_volume || 0).toLocaleString()}</span>
                 </div>
               </div>
@@ -521,7 +521,7 @@ export function TrafficPredictionPage() {
                 <div className="md:col-span-2 h-[220px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={breakdownData} layout="vertical" margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
-                      <CartesianGrid stroke="rgba(255,255,255,0.02)" horizontal={false} />
+                      <CartesianGrid stroke="rgba(0,0,0,0.05)" horizontal={false} />
                       <XAxis type="number" stroke="var(--color-tv-muted)" fontSize={10} tickLine={false} />
                       <YAxis dataKey="name" type="category" stroke="var(--color-tv-muted)" fontSize={11} tickLine={false} width={100} />
                       <Tooltip
@@ -552,7 +552,7 @@ export function TrafficPredictionPage() {
                     return (
                       <div
                         key={index}
-                        className="bg-white/[0.02] border border-white/[0.06] p-3 rounded-xl flex items-center gap-3"
+                        className="bg-black/[0.02] border border-tv-border p-3 rounded-xl flex items-center gap-3"
                       >
                         <div
                           className="p-2 rounded-lg"
@@ -611,7 +611,7 @@ export function TrafficPredictionPage() {
                     </h3>
                     <p className="text-xs text-tv-muted mt-1">Forecasting decay factor applied</p>
                   </div>
-                  <div className="p-3 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-xl">
+                  <div className="p-3 bg-tv-primary/10 text-tv-primary border border-tv-primary/20 rounded-xl">
                     <Sparkles className="h-6 w-6" />
                   </div>
                 </div>
@@ -626,7 +626,7 @@ export function TrafficPredictionPage() {
                     ? 'text-red-400 border-red-500/20 bg-red-500/10'
                     : isDown
                     ? 'text-tv-emerald border-tv-emerald/20 bg-tv-emerald/10'
-                    : 'text-tv-muted border-white/[0.06] bg-white/[0.02]'
+                    : 'text-tv-muted border-tv-border bg-black/[0.02]'
                   
                   const statusBg = getCongestionBg(interval.congestion_index)
                   const progressColor = getCongestionColor(interval.congestion_index)
@@ -660,7 +660,7 @@ export function TrafficPredictionPage() {
                             <span className="text-tv-muted">Congestion:</span>
                             <span className="font-bold text-tv-text">{interval.congestion_index}%</span>
                           </div>
-                          <div className="w-full bg-white/[0.08] h-1.5 rounded-full overflow-hidden">
+                          <div className="w-full bg-black/[0.04] h-1.5 rounded-full overflow-hidden">
                             <div
                               className="h-full rounded-full"
                               style={{
@@ -671,7 +671,7 @@ export function TrafficPredictionPage() {
                           </div>
                         </div>
 
-                        <div className="space-y-2 pt-2 border-t border-white/[0.04] text-xs">
+                        <div className="space-y-2 pt-2 border-t border-tv-border text-xs">
                           <div className="flex justify-between items-center">
                             <span className="text-tv-muted">Status:</span>
                             <span className={`font-bold text-[9px] px-1.5 py-0.5 rounded border ${statusBg}`}>
@@ -717,7 +717,7 @@ export function TrafficPredictionPage() {
                           <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.0} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid stroke="rgba(255,255,255,0.02)" vertical={false} />
+                      <CartesianGrid stroke="rgba(0,0,0,0.05)" vertical={false} />
                       <XAxis dataKey="time" stroke="var(--color-tv-muted)" fontSize={11} tickLine={false} />
                       <YAxis stroke="var(--color-tv-muted)" fontSize={11} tickLine={false} axisLine={false} domain={[0, 100]} />
                       <Tooltip

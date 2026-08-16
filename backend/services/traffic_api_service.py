@@ -16,7 +16,7 @@ class TrafficApiService:
             return self._generate_simulated_flow(latitude, longitude, "Simulated Live Sensor (No API Key)")
 
         # TomTom Traffic Flow API
-        url = f"https://api.tomtom.com/traffic/services/4/flowSegmentData/relative-zoom/10/json?point={latitude},{longitude}&unit=KMPH&key={api_key}"
+        url = f"https://api.tomtom.com/traffic/services/4/flowSegmentData/relative/10/json?point={latitude},{longitude}&unit=KMPH&key={api_key}"
         
         try:
             req = urllib.request.Request(url, headers={'User-Agent': 'TrafficVisionAI/1.0'})

@@ -44,11 +44,11 @@ export function Modal({ isOpen, onClose, title, children, maxWidth = 'max-w-md' 
               transition={{ type: 'spring', duration: 0.4, bounce: 0.3 }}
               className={`tv-glass w-full ${maxWidth} rounded-2xl p-6 pointer-events-auto`}
             >
-              <div className="flex items-center justify-between border-b border-white/[0.08] pb-4 mb-4">
+              <div className="flex items-center justify-between border-b border-tv-border pb-4 mb-4">
                 <h2 className="text-xl font-bold tracking-tight text-tv-text">{title}</h2>
                 <button
                   onClick={onClose}
-                  className="rounded-lg p-1.5 text-tv-muted transition-colors hover:bg-white/[0.08] hover:text-tv-text"
+                  className="rounded-lg p-1.5 text-tv-muted transition-colors hover:bg-black/[0.04] hover:text-tv-text"
                 >
                   <X className="h-5 w-5" />
                 </button>

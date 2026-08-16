@@ -20,7 +20,7 @@ export function LoginPage() {
 
       {/* Left panel — smart city illustration (hidden on mobile) */}
       <div className="relative hidden w-[60%] overflow-hidden lg:block">
-        <div className="absolute inset-y-0 right-0 w-px bg-white/[0.06]" />
+        <div className="absolute inset-y-0 right-0 w-px bg-black/[0.03]" />
         <SmartCityIllustration />
       </div>
 

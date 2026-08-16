@@ -160,15 +160,15 @@ export function RouteAnalysisPage() {
       </div>
 
       {/* Select Source/Destination & Conditions Panel */}
-      <div className="bg-tv-surface/40 border border-white/[0.06] p-5 rounded-2xl backdrop-blur-md space-y-4">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center justify-between border-b border-white/[0.04] pb-3">
+      <div className="bg-tv-surface/40 border border-tv-border p-5 rounded-2xl backdrop-blur-md space-y-4">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center justify-between border-b border-tv-border pb-3">
           <div className="flex items-center gap-1.5">
             <Sparkles className="h-4 w-4 text-tv-primary animate-pulse" />
             <h4 className="text-xs font-bold text-tv-text uppercase tracking-wider">Route Optimization Settings</h4>
           </div>
           
           {/* Preferences tabs selector */}
-          <div className="flex bg-tv-surface border border-white/[0.08] p-1 rounded-xl gap-1">
+          <div className="flex bg-tv-surface border border-tv-border p-1 rounded-xl gap-1">
             {['Fastest', 'Shortest', 'Eco'].map((pref) => {
               const isActive = preference === pref
               const label = pref === 'Eco' ? 'Eco-Friendly 🍃' : (pref === 'Shortest' ? 'Shortest 📏' : 'Fastest ⚡')
@@ -179,8 +179,8 @@ export function RouteAnalysisPage() {
                   onClick={() => setPreference(pref)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     isActive 
-                      ? 'bg-tv-primary text-white shadow-md' 
-                      : 'text-tv-muted hover:text-tv-text hover:bg-white/[0.02]'
+                      ? 'bg-tv-primary text-tv-text shadow-md' 
+                      : 'text-tv-muted hover:text-tv-text hover:bg-black/[0.02]'
                   }`}
                 >
                   {label}
@@ -199,7 +199,7 @@ export function RouteAnalysisPage() {
             <select
               value={sourceRoad}
               onChange={(e) => setSourceRoad(e.target.value)}
-              className="w-full bg-tv-surface border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-tv-text focus:outline-none focus:border-tv-primary cursor-pointer font-semibold"
+              className="w-full bg-tv-surface border border-tv-border rounded-xl px-3 py-2 text-xs text-tv-text focus:outline-none focus:border-tv-primary cursor-pointer font-semibold"
             >
               {roads.map(r => (
                 <option key={`src-${r}`} value={r} disabled={r === destRoad}>
@@ -217,7 +217,7 @@ export function RouteAnalysisPage() {
             <select
               value={destRoad}
               onChange={(e) => setDestRoad(e.target.value)}
-              className="w-full bg-tv-surface border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-tv-text focus:outline-none focus:border-tv-primary cursor-pointer font-semibold"
+              className="w-full bg-tv-surface border border-tv-border rounded-xl px-3 py-2 text-xs text-tv-text focus:outline-none focus:border-tv-primary cursor-pointer font-semibold"
             >
               {roads.map(r => (
                 <option key={`dest-${r}`} value={r} disabled={r === sourceRoad}>
@@ -235,7 +235,7 @@ export function RouteAnalysisPage() {
             <select
               value={weather}
               onChange={(e) => setWeather(e.target.value)}
-              className="w-full bg-tv-surface border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-tv-text focus:outline-none focus:border-tv-primary cursor-pointer"
+              className="w-full bg-tv-surface border border-tv-border rounded-xl px-3 py-2 text-xs text-tv-text focus:outline-none focus:border-tv-primary cursor-pointer"
             >
               <option value="Clear">Sunny / Clear</option>
               <option value="Rain">Rainy (Traffic Speed -15%)</option>
@@ -252,7 +252,7 @@ export function RouteAnalysisPage() {
             <select
               value={roadCondition}
               onChange={(e) => setRoadCondition(e.target.value)}
-              className="w-full bg-tv-surface border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-tv-text focus:outline-none focus:border-tv-primary cursor-pointer"
+              className="w-full bg-tv-surface border border-tv-border rounded-xl px-3 py-2 text-xs text-tv-text focus:outline-none focus:border-tv-primary cursor-pointer"
             >
               <option value="Excellent">Normal / Excellent</option>
               <option value="Good">Good</option>
@@ -265,7 +265,7 @@ export function RouteAnalysisPage() {
           <button
             onClick={handleCalculateRoutes}
             disabled={loading}
-            className="rounded-xl bg-tv-primary px-5 py-2.5 text-xs font-bold text-white transition-all hover:bg-blue-600 disabled:opacity-50 flex items-center gap-2 cursor-pointer"
+            className="rounded-xl bg-tv-primary px-5 py-2.5 text-xs font-bold text-tv-text transition-all hover:bg-blue-600 disabled:opacity-50 flex items-center gap-2 cursor-pointer"
           >
             <Compass className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             <span>Recalculate Optimal Paths</span>
@@ -301,8 +301,8 @@ export function RouteAnalysisPage() {
                     className="h-full w-full z-0"
                   >
                     <TileLayer
-                      url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                      url="https://mt1.google.com/vt/lyrs=m,traffic&x={x}&y={y}&z={z}"
+                      attribution='&copy; Google Maps'
                     />
                     
                     {/* Render all routes with different colors */}
@@ -389,7 +389,7 @@ export function RouteAnalysisPage() {
                     <motion.div
                       key={rt.id}
                       onClick={() => setActiveRouteId(rt.id)}
-                      className={`p-4 rounded-xl border bg-white/[0.01] hover:bg-white/[0.03] transition-all cursor-pointer ${
+                      className={`p-4 rounded-xl border bg-black/[0.01] hover:bg-black/[0.03] transition-all cursor-pointer ${
                         isSelected ? 'bg-tv-primary/5 text-tv-text' : 'text-tv-muted'
                       }`}
                       style={{
@@ -413,22 +413,22 @@ export function RouteAnalysisPage() {
                       </div>
 
                       <div className="grid grid-cols-3 gap-2 mt-3 text-center">
-                        <div className="bg-white/[0.02] border border-white/[0.05] p-1.5 rounded-lg">
+                        <div className="bg-black/[0.02] border border-tv-border p-1.5 rounded-lg">
                           <p className="text-[8px] text-tv-muted uppercase font-medium">Distance</p>
                           <p className="text-xs font-bold text-tv-text mt-0.5">{rt.distance_km} km</p>
                         </div>
-                        <div className="bg-white/[0.02] border border-white/[0.05] p-1.5 rounded-lg">
+                        <div className="bg-black/[0.02] border border-tv-border p-1.5 rounded-lg">
                           <p className="text-[8px] text-tv-muted uppercase font-medium">Time</p>
                           <p className="text-xs font-bold text-tv-text mt-0.5">{rt.estimated_time} min</p>
                         </div>
-                        <div className="bg-white/[0.02] border border-white/[0.05] p-1.5 rounded-lg">
+                        <div className="bg-black/[0.02] border border-tv-border p-1.5 rounded-lg">
                           <p className="text-[8px] text-tv-muted uppercase font-medium">Delay</p>
                           <p className="text-xs font-bold text-red-400 mt-0.5">+{rt.delay} min</p>
                         </div>
                       </div>
 
                       {/* Eco Emission Metrics */}
-                      <div className="mt-2 flex justify-between items-center text-[10px] text-tv-muted bg-white/[0.01] px-2.5 py-1.5 rounded-lg border border-white/[0.03]">
+                      <div className="mt-2 flex justify-between items-center text-[10px] text-tv-muted bg-black/[0.01] px-2.5 py-1.5 rounded-lg border border-tv-border">
                         <span className="flex items-center gap-1">
                           <Leaf className="h-3.5 w-3.5 text-tv-emerald" />
                           Eco Footprint:
@@ -447,7 +447,7 @@ export function RouteAnalysisPage() {
             <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
               {/* Estimator Input Form */}
               <motion.div variants={itemVariants} className="tv-glass p-5 rounded-2xl md:col-span-1 space-y-4">
-                <h4 className="text-sm font-bold text-tv-text flex items-center gap-1.5 border-b border-white/[0.05] pb-3">
+                <h4 className="text-sm font-bold text-tv-text flex items-center gap-1.5 border-b border-tv-border pb-3">
                   <Gauge className="h-4.5 w-4.5 text-tv-primary" />
                   Travel Time Estimation Simulator
                 </h4>
@@ -464,7 +464,7 @@ export function RouteAnalysisPage() {
                     max="100"
                     value={calcDistance}
                     onChange={(e) => setCalcDistance(parseInt(e.target.value))}
-                    className="w-full h-1.5 bg-white/[0.08] rounded-lg appearance-none cursor-pointer accent-tv-primary"
+                    className="w-full h-1.5 bg-black/[0.04] rounded-lg appearance-none cursor-pointer accent-tv-primary"
                   />
                 </div>
 
@@ -480,7 +480,7 @@ export function RouteAnalysisPage() {
                     max="100"
                     value={calcCongestion}
                     onChange={(e) => setCalcCongestion(parseInt(e.target.value))}
-                    className="w-full h-1.5 bg-white/[0.08] rounded-lg appearance-none cursor-pointer accent-tv-orange"
+                    className="w-full h-1.5 bg-black/[0.04] rounded-lg appearance-none cursor-pointer accent-tv-orange"
                   />
                 </div>
 
@@ -490,7 +490,7 @@ export function RouteAnalysisPage() {
                   <select
                     value={calcRoadType}
                     onChange={(e) => setCalcRoadType(e.target.value)}
-                    className="w-full bg-tv-surface border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-tv-text focus:outline-none focus:border-tv-primary cursor-pointer font-semibold"
+                    className="w-full bg-tv-surface border border-tv-border rounded-xl px-3 py-2 text-xs text-tv-text focus:outline-none focus:border-tv-primary cursor-pointer font-semibold"
                   >
                     <option value="Major">Major Arterial (60 km/h baseline)</option>
                     <option value="Minor">Minor Collector (40 km/h baseline)</option>
@@ -503,7 +503,7 @@ export function RouteAnalysisPage() {
                   <select
                     value={calcWeather}
                     onChange={(e) => setCalcWeather(e.target.value)}
-                    className="w-full bg-tv-surface border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-tv-text focus:outline-none focus:border-tv-primary cursor-pointer"
+                    className="w-full bg-tv-surface border border-tv-border rounded-xl px-3 py-2 text-xs text-tv-text focus:outline-none focus:border-tv-primary cursor-pointer"
                   >
                     <option value="Clear">Sunny / Clear</option>
                     <option value="Rain">Rainy (Adds Congestion Delay)</option>
@@ -518,7 +518,7 @@ export function RouteAnalysisPage() {
                   <select
                     value={calcRoadCondition}
                     onChange={(e) => setCalcRoadCondition(e.target.value)}
-                    className="w-full bg-tv-surface border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-tv-text focus:outline-none focus:border-tv-primary cursor-pointer"
+                    className="w-full bg-tv-surface border border-tv-border rounded-xl px-3 py-2 text-xs text-tv-text focus:outline-none focus:border-tv-primary cursor-pointer"
                   >
                     <option value="Excellent">Normal / Excellent</option>
                     <option value="Good">Good</option>
@@ -529,7 +529,7 @@ export function RouteAnalysisPage() {
 
               {/* Estimation Results Panel */}
               <motion.div variants={itemVariants} className="md:col-span-2 tv-glass p-5 rounded-2xl flex flex-col justify-between">
-                <h4 className="text-sm font-bold text-tv-text flex items-center gap-1.5 border-b border-white/[0.05] pb-3 mb-4">
+                <h4 className="text-sm font-bold text-tv-text flex items-center gap-1.5 border-b border-tv-border pb-3 mb-4">
                   <Clock className="h-4.5 w-4.5 text-tv-emerald" />
                   Estimated Time Calculations
                 </h4>
@@ -541,25 +541,25 @@ export function RouteAnalysisPage() {
                 ) : calcResults ? (
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                      <div className="bg-white/[0.01] border border-white/[0.04] p-4 rounded-xl text-center">
+                      <div className="bg-black/[0.01] border border-tv-border p-4 rounded-xl text-center">
                         <p className="text-[10px] text-tv-muted uppercase font-semibold">Normal Time</p>
                         <p className="text-xl font-bold text-tv-text mt-1">{calcResults.normal_time} min</p>
                         <span className="text-[9px] text-tv-muted">No traffic delay</span>
                       </div>
                       
-                      <div className="bg-white/[0.01] border border-white/[0.04] p-4 rounded-xl text-center">
+                      <div className="bg-black/[0.01] border border-tv-border p-4 rounded-xl text-center">
                         <p className="text-[10px] text-tv-muted uppercase font-semibold">Traffic Delay</p>
                         <p className="text-xl font-bold text-red-400 mt-1">+{calcResults.delay} min</p>
                         <span className="text-[9px] text-tv-muted">Queueing lag</span>
                       </div>
 
-                      <div className="bg-white/[0.01] border border-white/[0.04] p-4 rounded-xl text-center">
+                      <div className="bg-black/[0.01] border border-tv-border p-4 rounded-xl text-center">
                         <p className="text-[10px] text-tv-muted uppercase font-semibold">Total Est. Time</p>
                         <p className="text-xl font-bold text-tv-primary mt-1">{calcResults.estimated_time} min</p>
                         <span className="text-[9px] text-tv-muted">Sum trip time</span>
                       </div>
 
-                      <div className="bg-white/[0.01] border border-white/[0.04] p-4 rounded-xl text-center flex flex-col justify-between items-center">
+                      <div className="bg-black/[0.01] border border-tv-border p-4 rounded-xl text-center flex flex-col justify-between items-center">
                         <p className="text-[10px] text-tv-muted uppercase font-semibold">Delay Impact</p>
                         <span className={`px-2.5 py-1 rounded-full border text-[10px] font-bold mt-1.5 ${getDelayBadgeClass(calcResults.delay_level)}`}>
                           {calcResults.delay_level} DELAY
@@ -580,7 +580,7 @@ export function RouteAnalysisPage() {
                         </div>
                       </div>
                       
-                      <div className="bg-tv-primary/5 border border-white/[0.06] p-3.5 rounded-xl flex items-start gap-2.5 text-xs text-tv-muted">
+                      <div className="bg-tv-primary/5 border border-tv-border p-3.5 rounded-xl flex items-start gap-2.5 text-xs text-tv-muted">
                         <Info className="h-4.5 w-4.5 text-tv-primary flex-shrink-0 mt-0.5" />
                         <div>
                           <p className="font-semibold text-tv-text">Speed & Condition Adjustments</p>

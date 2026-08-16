@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Circle, Marker, Popup, useMap } from 'react-le
 import L from 'leaflet'
 import {
   Map, MapPin, Layers, Sliders, RefreshCw,
-  Search, Activity
+  Search
 } from 'lucide-react'
 import { analyticsService } from '../../services/analyticsService'
 import 'leaflet/dist/leaflet.css'
@@ -21,7 +21,7 @@ const createCustomIcon = (congestionLevel: string) => {
       width: 14px; 
       height: 14px; 
       border-radius: 50%; 
-      border: 2px solid #0f172a; 
+      border: 2px solid #ffffff; 
       box-shadow: 0 0 10px ${color}, 0 0 3px ${color};
     "></div>`,
     className: 'custom-leaflet-glow-dot',
@@ -58,7 +58,6 @@ export function HeatmapPage() {
   // Map Controls State
   const [showHeatmapLayer, setShowHeatmapLayer] = useState<boolean>(true)
   const [showMarkersLayer, setShowMarkersLayer] = useState<boolean>(false)
-  const [mapTheme, setMapTheme] = useState<'dark' | 'light'>('dark')
   
   // Data State
   const [loading, setLoading] = useState<boolean>(true)
@@ -107,23 +106,23 @@ export function HeatmapPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 p-6 text-slate-100">
+    <div className="space-y-6 pb-12">
       {/* Header Banner */}
-      <div className="mb-6 flex flex-col justify-between gap-4 border-b border-white/[0.06] pb-6 sm:flex-row sm:items-center">
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-tv-primary">
             <Map className="h-4 w-4" />
             Geospatial Visualizer
           </div>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight text-white">Interactive Congestion Heatmap</h1>
-          <p className="mt-1 text-sm text-slate-400">
+          <h1 className="mt-1 text-3xl font-bold tracking-tight text-tv-text">Interactive Congestion Heatmap</h1>
+          <p className="mt-1 text-sm text-tv-muted">
             Monitor real-time vehicle density hotspots, busy intersections, and predicted traffic concentrations.
           </p>
         </div>
 
         <button
           onClick={fetchHeatmapData}
-          className="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.02] px-4 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-white/[0.06] hover:text-white"
+          className="flex items-center gap-2 rounded-xl border border-tv-border bg-tv-surface px-4 py-2.5 text-xs font-semibold text-tv-text transition-all hover:bg-black/[0.03] cursor-pointer"
         >
           <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           Refresh Map
@@ -135,8 +134,8 @@ export function HeatmapPage() {
         {/* Left Column: Side Filters & Searchable Checklist */}
         <div className="flex flex-col gap-6 lg:col-span-3">
           {/* Controls Panel */}
-          <div className="rounded-2xl border border-white/[0.06] bg-[#0F172A] p-5 shadow-xl">
-            <h3 className="mb-4 flex items-center gap-2 text-sm font-bold text-white">
+          <div className="rounded-2xl border border-tv-border bg-tv-surface p-5 shadow-sm">
+            <h3 className="mb-4 flex items-center gap-2 text-sm font-bold text-tv-text">
               <Sliders className="h-4 w-4 text-tv-primary" />
               Hotspot Filters
             </h3>
@@ -144,26 +143,26 @@ export function HeatmapPage() {
             <div className="flex flex-col gap-4">
               {/* Search */}
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Search Road</label>
+                <label className="block text-xs font-semibold text-tv-muted uppercase tracking-wider mb-1.5">Search Road</label>
                 <div className="relative">
-                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
+                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-tv-muted" />
                   <input
                     type="text"
                     placeholder="Search e.g. A1, M25..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full rounded-xl border border-white/[0.08] bg-slate-900 pl-9 pr-4 py-2 text-sm text-white placeholder-slate-500 focus:border-tv-primary focus:outline-none"
+                    className="w-full rounded-xl border border-tv-border bg-tv-bg pl-9 pr-4 py-2 text-xs text-tv-text placeholder-tv-muted focus:border-tv-primary focus:outline-none"
                   />
                 </div>
               </div>
 
               {/* Region */}
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Region</label>
+                <label className="block text-xs font-semibold text-tv-muted uppercase tracking-wider mb-1.5">Region</label>
                 <select
                   value={filters.region}
                   onChange={(e) => setFilters(prev => ({ ...prev, region: e.target.value }))}
-                  className="w-full rounded-xl border border-white/[0.08] bg-slate-900 px-3 py-2 text-sm text-white focus:outline-none"
+                  className="w-full rounded-xl border border-tv-border bg-tv-bg px-3 py-2 text-xs text-tv-text focus:outline-none"
                 >
                   {REGIONS.map(reg => (
                     <option key={reg} value={reg}>{reg}</option>
@@ -173,11 +172,11 @@ export function HeatmapPage() {
 
               {/* Road Type */}
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Road Type</label>
+                <label className="block text-xs font-semibold text-tv-muted uppercase tracking-wider mb-1.5">Road Type</label>
                 <select
                   value={filters.roadType}
                   onChange={(e) => setFilters(prev => ({ ...prev, roadType: e.target.value }))}
-                  className="w-full rounded-xl border border-white/[0.08] bg-slate-900 px-3 py-2 text-sm text-white focus:outline-none"
+                  className="w-full rounded-xl border border-tv-border bg-tv-bg px-3 py-2 text-xs text-tv-text focus:outline-none"
                 >
                   {ROAD_TYPES.map(rt => (
                     <option key={rt} value={rt}>{rt}</option>
@@ -187,7 +186,7 @@ export function HeatmapPage() {
 
               {/* Time Period */}
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5 flex justify-between">
+                <label className="block text-xs font-semibold text-tv-muted uppercase tracking-wider mb-1.5 flex justify-between">
                   Target Time
                   <span className="text-[10px] text-tv-primary lowercase font-mono">{filters.time}</span>
                 </label>
@@ -197,17 +196,17 @@ export function HeatmapPage() {
                   max="23"
                   value={filters.time.split(':')[0]}
                   onChange={(e) => setFilters(prev => ({ ...prev, time: `${intValToHour(parseInt(e.target.value))}` }))}
-                  className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-tv-primary mt-1"
+                  className="w-full h-1 bg-tv-border rounded-lg appearance-none cursor-pointer accent-tv-primary mt-1"
                 />
               </div>
 
               {/* Congestion Level */}
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Congestion Level</label>
+                <label className="block text-xs font-semibold text-tv-muted uppercase tracking-wider mb-1.5">Congestion Level</label>
                 <select
                   value={filters.congestionLevel}
                   onChange={(e) => setFilters(prev => ({ ...prev, congestionLevel: e.target.value }))}
-                  className="w-full rounded-xl border border-white/[0.08] bg-slate-900 px-3 py-2 text-sm text-white focus:outline-none"
+                  className="w-full rounded-xl border border-tv-border bg-tv-bg px-3 py-2 text-xs text-tv-text focus:outline-none"
                 >
                   {CONGESTION_LEVELS.map(cl => (
                     <option key={cl} value={cl}>{cl}</option>
@@ -218,27 +217,27 @@ export function HeatmapPage() {
           </div>
 
           {/* Quick List Checklist of Hotspots */}
-          <div className="flex-1 rounded-2xl border border-white/[0.06] bg-[#0F172A] p-4.5 shadow-xl max-h-[300px] overflow-y-auto scrollbar-thin">
-            <h4 className="mb-3 text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+          <div className="flex-1 rounded-2xl border border-tv-border bg-tv-surface p-4.5 shadow-sm max-h-[300px] overflow-y-auto scrollbar-thin">
+            <h4 className="mb-3 text-xs font-bold text-tv-text uppercase tracking-wider flex items-center gap-1.5">
               <MapPin className="h-4 w-4 text-tv-primary" />
               Hotspots List ({filteredPoints.length})
             </h4>
             <div className="flex flex-col gap-2">
               {filteredPoints.map((p, idx) => {
                 const color = 
-                  p.congestion_level === 'Low' ? 'text-green-500 border-green-500/20 bg-green-500/5' : 
-                  p.congestion_level === 'Moderate' ? 'text-amber-500 border-amber-500/20 bg-amber-500/5' : 
-                  p.congestion_level === 'High' ? 'text-orange-500 border-orange-500/20 bg-orange-500/5' : 
-                  'text-red-500 border-red-500/20 bg-red-500/5'
+                  p.congestion_level === 'Low' ? 'text-green-600 border-green-500/20 bg-green-500/5' : 
+                  p.congestion_level === 'Moderate' ? 'text-amber-600 border-amber-500/20 bg-amber-500/5' : 
+                  p.congestion_level === 'High' ? 'text-orange-600 border-orange-500/20 bg-orange-500/5' : 
+                  'text-red-650 border-red-500/20 bg-red-500/5'
                 return (
                   <div
                     key={idx}
                     onClick={() => handleSelectPoint(p)}
-                    className="flex items-center justify-between p-2.5 rounded-xl border border-white/[0.04] bg-white/[0.01] hover:bg-white/[0.03] transition cursor-pointer"
+                    className="flex items-center justify-between p-2.5 rounded-xl border border-tv-border bg-black/[0.01] hover:bg-black/[0.03] transition cursor-pointer"
                   >
                     <div>
-                      <span className="text-xs font-bold text-white block">{p.road_name}</span>
-                      <span className="text-[10px] text-slate-500">{p.location}</span>
+                      <span className="text-xs font-bold text-tv-text block">{p.road_name}</span>
+                      <span className="text-[10px] text-tv-muted">{p.location}</span>
                     </div>
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${color}`}>
                       {p.congestion_score}%
@@ -253,16 +252,16 @@ export function HeatmapPage() {
         {/* Right Column: Leaflet Map Container & Control Panels */}
         <div className="flex flex-col gap-4 lg:col-span-9">
           {/* Map wrapper */}
-          <div className="h-[600px] w-full rounded-3xl border border-white/[0.06] bg-[#0F172A] relative overflow-hidden shadow-2xl">
+          <div className="h-[600px] w-full rounded-3xl border border-tv-border bg-tv-surface relative overflow-hidden shadow-xs">
             {/* Overlay Map Settings Toggles */}
             <div className="absolute top-4 right-4 z-[400] flex flex-col gap-2">
               {/* Heatmap Layer Toggle */}
               <button
                 onClick={() => setShowHeatmapLayer(prev => !prev)}
-                className={`flex h-10 w-10 items-center justify-center rounded-xl shadow-lg border transition ${
+                className={`flex h-10 w-10 items-center justify-center rounded-xl shadow-md border transition ${
                   showHeatmapLayer 
-                    ? 'bg-tv-primary border-tv-primary text-white' 
-                    : 'bg-slate-900 border-white/[0.08] text-slate-400 hover:text-white'
+                    ? 'bg-tv-primary border-tv-primary text-tv-text' 
+                    : 'bg-tv-surface border-tv-border text-tv-muted hover:text-tv-text'
                 }`}
                 title="Toggle Heatmap Layer"
               >
@@ -272,23 +271,14 @@ export function HeatmapPage() {
               {/* Markers Layer Toggle */}
               <button
                 onClick={() => setShowMarkersLayer(prev => !prev)}
-                className={`flex h-10 w-10 items-center justify-center rounded-xl shadow-lg border transition ${
+                className={`flex h-10 w-10 items-center justify-center rounded-xl shadow-md border transition ${
                   showMarkersLayer 
-                    ? 'bg-tv-primary border-tv-primary text-white' 
-                    : 'bg-slate-900 border-white/[0.08] text-slate-400 hover:text-white'
+                    ? 'bg-tv-primary border-tv-primary text-tv-text' 
+                    : 'bg-tv-surface border-tv-border text-tv-muted hover:text-tv-text'
                 }`}
                 title="Toggle Marker Layer"
               >
                 <MapPin className="h-5 w-5" />
-              </button>
-
-              {/* Map Theme Toggle */}
-              <button
-                onClick={() => setMapTheme(prev => prev === 'dark' ? 'light' : 'dark')}
-                className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.08] bg-slate-900 text-slate-400 hover:text-white shadow-lg transition"
-                title="Toggle Map Style"
-              >
-                <Activity className="h-5 w-5" />
               </button>
             </div>
 
@@ -301,12 +291,8 @@ export function HeatmapPage() {
               <ChangeMapView center={mapCenter} zoom={11} />
 
               <TileLayer
-                url={
-                  mapTheme === 'dark'
-                    ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                    : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                }
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://mt1.google.com/vt/lyrs=m,traffic&x={x}&y={y}&z={z}"
+                attribution='&copy; Google Maps'
               />
 
               {/* Heatmap overlay circles */}
@@ -341,7 +327,7 @@ export function HeatmapPage() {
                         <p className="m-0.5"><strong>Density score:</strong> {p.vehicle_density}</p>
                         <p className="m-0.5"><strong>Prediction Index:</strong> {p.prediction_score}</p>
                         <p className="m-0.5"><strong>Coordinates:</strong> {p.location}</p>
-                        <p className="m-0.5 border-t pt-1 mt-1 text-[10px] text-slate-500">Updated: {p.last_updated}</p>
+                        <p className="m-0.5 border-t pt-1 mt-1 text-[10px] text-tv-muted">Updated: {p.last_updated}</p>
                       </div>
                     </Popup>
                   </Circle>
@@ -368,25 +354,25 @@ export function HeatmapPage() {
           </div>
 
           {/* Quick Legend bar */}
-          <div className="rounded-2xl border border-white/[0.06] bg-[#0F172A] p-4 flex flex-wrap gap-4 items-center justify-between shadow-lg">
-            <div className="flex items-center gap-1.5 text-xs text-slate-400">
-              <Sliders className="h-4 w-4 text-slate-500" />
+          <div className="rounded-2xl border border-tv-border bg-tv-surface p-4 flex flex-wrap gap-4 items-center justify-between shadow-xs">
+            <div className="flex items-center gap-1.5 text-xs text-tv-muted">
+              <Sliders className="h-4 w-4 text-tv-muted" />
               Legend:
             </div>
             <div className="flex gap-4 flex-wrap">
-              <div className="flex items-center gap-1.5 text-xs text-slate-300">
+              <div className="flex items-center gap-1.5 text-xs text-tv-text">
                 <div className="h-3 w-3 rounded-full bg-green-500 shadow-md shadow-green-500/25" />
                 Low (&lt;30%)
               </div>
-              <div className="flex items-center gap-1.5 text-xs text-slate-300">
+              <div className="flex items-center gap-1.5 text-xs text-tv-text">
                 <div className="h-3 w-3 rounded-full bg-amber-500 shadow-md shadow-amber-500/25" />
                 Moderate (30%-60%)
               </div>
-              <div className="flex items-center gap-1.5 text-xs text-slate-300">
+              <div className="flex items-center gap-1.5 text-xs text-tv-text">
                 <div className="h-3 w-3 rounded-full bg-orange-500 shadow-md shadow-orange-500/25" />
                 High (60%-85%)
               </div>
-              <div className="flex items-center gap-1.5 text-xs text-slate-300">
+              <div className="flex items-center gap-1.5 text-xs text-tv-text">
                 <div className="h-3 w-3 rounded-full bg-red-500 shadow-md shadow-red-500/25" />
                 Severe (&gt;85%)
               </div>
@@ -401,3 +387,5 @@ export function HeatmapPage() {
 function intValToHour(val: number): string {
   return `${val.toString().padStart(2, '0')}:00`
 }
+
+export default HeatmapPage

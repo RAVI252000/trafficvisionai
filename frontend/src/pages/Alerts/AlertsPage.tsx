@@ -249,11 +249,11 @@ export function AlertsPage() {
       case 'Active':
         return 'bg-red-500/10 text-red-500 border border-red-500/20'
       case 'Acknowledged':
-        return 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+        return 'bg-tv-primary/10 text-tv-primary border border-tv-primary/20'
       case 'Resolved':
         return 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
       default:
-        return 'bg-white/10 text-tv-muted border border-white/[0.08]'
+        return 'bg-black/[0.04] text-tv-muted border border-tv-border'
     }
   }
 
@@ -269,7 +269,7 @@ export function AlertsPage() {
           <button
             onClick={() => fetchAlerts(true)}
             disabled={refreshing}
-            className="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 text-xs font-semibold text-tv-text transition-all hover:bg-white/[0.08] disabled:opacity-50 cursor-pointer"
+            className="flex items-center gap-2 rounded-xl border border-tv-border bg-black/[0.03] px-4 py-2.5 text-xs font-semibold text-tv-text transition-all hover:bg-black/[0.04] disabled:opacity-50 cursor-pointer"
           >
             <RefreshCw className={`h-4 w-4 text-tv-primary ${refreshing ? 'animate-spin' : ''}`} />
             <span>{refreshing ? 'Refreshing...' : 'Sync Logs'}</span>
@@ -278,7 +278,7 @@ export function AlertsPage() {
           {isAdmin && (
             <button
               onClick={() => setIsCreateOpen(true)}
-              className="flex items-center gap-2 rounded-xl bg-tv-primary px-4 py-2.5 text-xs font-bold text-white transition-all hover:bg-blue-600 shadow-lg shadow-blue-500/10 cursor-pointer"
+              className="flex items-center gap-2 rounded-xl bg-tv-primary px-4 py-2.5 text-xs font-bold text-tv-text transition-all hover:bg-blue-600 shadow-lg shadow-tv-primary/10 cursor-pointer"
             >
               <PlusCircle className="h-4.5 w-4.5" />
               <span>Create Alert</span>
@@ -291,7 +291,7 @@ export function AlertsPage() {
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {/* Card 1: Total Alerts */}
         <div className="tv-glass rounded-2xl p-5 flex items-center gap-4">
-          <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.06] text-tv-muted">
+          <div className="p-3.5 rounded-xl bg-black/[0.03] border border-tv-border text-tv-muted">
             <FileText className="h-6 w-6" />
           </div>
           <div>
@@ -336,7 +336,7 @@ export function AlertsPage() {
 
       {/* Advanced Filtering Control Panel */}
       <div className="tv-glass rounded-2xl p-5 space-y-4">
-        <div className="flex items-center gap-2 border-b border-white/[0.04] pb-3">
+        <div className="flex items-center gap-2 border-b border-tv-border pb-3">
           <Filter className="h-4 w-4 text-tv-primary" />
           <span className="text-xs font-bold uppercase tracking-wider text-tv-text">Alert Filtering &amp; Search</span>
         </div>
@@ -350,7 +350,7 @@ export function AlertsPage() {
               placeholder="Search title, road..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full rounded-xl border border-white/[0.08] bg-white/[0.02] py-2.5 pl-9 pr-4 text-xs font-semibold text-tv-text placeholder-tv-muted outline-none transition-all focus:border-tv-primary focus:bg-white/[0.04]"
+              className="w-full rounded-xl border border-tv-border bg-black/[0.02] py-2.5 pl-9 pr-4 text-xs font-semibold text-tv-text placeholder-tv-muted outline-none transition-all focus:border-tv-primary focus:bg-black/[0.03]"
             />
           </div>
 
@@ -359,7 +359,7 @@ export function AlertsPage() {
             <select
               value={filterSeverity}
               onChange={e => setFilterSeverity(e.target.value)}
-              className="w-full rounded-xl border border-white/[0.08] bg-[#1E293B] py-2.5 px-3.5 text-xs font-semibold text-tv-text outline-none transition-all focus:border-tv-primary"
+              className="w-full rounded-xl border border-tv-border bg-tv-surface py-2.5 px-3.5 text-xs font-semibold text-tv-text outline-none transition-all focus:border-tv-primary"
             >
               <option value="">All Severities</option>
               {SEVERITIES.map(s => <option key={s} value={s}>{s}</option>)}
@@ -371,7 +371,7 @@ export function AlertsPage() {
             <select
               value={filterType}
               onChange={e => setFilterType(e.target.value)}
-              className="w-full rounded-xl border border-white/[0.08] bg-[#1E293B] py-2.5 px-3.5 text-xs font-semibold text-tv-text outline-none transition-all focus:border-tv-primary"
+              className="w-full rounded-xl border border-tv-border bg-tv-surface py-2.5 px-3.5 text-xs font-semibold text-tv-text outline-none transition-all focus:border-tv-primary"
             >
               <option value="">All Categories</option>
               {ALERT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
@@ -383,7 +383,7 @@ export function AlertsPage() {
             <select
               value={filterStatus}
               onChange={e => setFilterStatus(e.target.value)}
-              className="w-full rounded-xl border border-white/[0.08] bg-[#1E293B] py-2.5 px-3.5 text-xs font-semibold text-tv-text outline-none transition-all focus:border-tv-primary"
+              className="w-full rounded-xl border border-tv-border bg-tv-surface py-2.5 px-3.5 text-xs font-semibold text-tv-text outline-none transition-all focus:border-tv-primary"
             >
               <option value="">All Statuses</option>
               {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
@@ -398,7 +398,7 @@ export function AlertsPage() {
               placeholder="Filter by coordinates..."
               value={filterLocation}
               onChange={e => setFilterLocation(e.target.value)}
-              className="w-full rounded-xl border border-white/[0.08] bg-white/[0.02] py-2.5 pl-9 pr-4 text-xs font-semibold text-tv-text placeholder-tv-muted outline-none transition-all focus:border-tv-primary focus:bg-white/[0.04]"
+              className="w-full rounded-xl border border-tv-border bg-black/[0.02] py-2.5 pl-9 pr-4 text-xs font-semibold text-tv-text placeholder-tv-muted outline-none transition-all focus:border-tv-primary focus:bg-black/[0.03]"
             />
           </div>
         </div>
@@ -429,7 +429,7 @@ export function AlertsPage() {
           <div className="w-full overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-white/[0.06] bg-white/[0.01] text-[10px] font-bold uppercase tracking-wider text-tv-muted">
+                <tr className="border-b border-tv-border bg-black/[0.01] text-[10px] font-bold uppercase tracking-wider text-tv-muted">
                   <th className="px-5 py-3">Severity</th>
                   <th className="px-5 py-3">Title / Category</th>
                   <th className="px-5 py-3">Location</th>
@@ -443,7 +443,7 @@ export function AlertsPage() {
                 {filteredAlerts.map(alert => (
                   <tr
                     key={alert.id}
-                    className="hover:bg-white/[0.01] transition-colors text-xs font-medium text-tv-text"
+                    className="hover:bg-black/[0.01] transition-colors text-xs font-medium text-tv-text"
                   >
                     <td className="px-5 py-4 whitespace-nowrap">
                       <span className={`inline-flex rounded-lg px-2.5 py-0.5 text-[10px] font-bold ${getSeverityBadgeClass(alert.severity)}`}>
@@ -473,7 +473,7 @@ export function AlertsPage() {
                           setSelectedAlert(alert)
                           setIsDetailOpen(true)
                         }}
-                        className="p-1.5 rounded-lg border border-white/[0.06] bg-white/[0.02] text-tv-muted hover:text-tv-text transition-colors cursor-pointer"
+                        className="p-1.5 rounded-lg border border-tv-border bg-black/[0.02] text-tv-muted hover:text-tv-text transition-colors cursor-pointer"
                         title="View Details"
                       >
                         <Eye className="h-4 w-4" />
@@ -483,7 +483,7 @@ export function AlertsPage() {
                       {alert.status === 'Active' && (
                         <button
                           onClick={() => handleAcknowledge(alert.id)}
-                          className="p-1.5 rounded-lg border border-blue-500/20 bg-blue-500/10 text-blue-400 hover:text-white hover:bg-blue-600 transition-colors cursor-pointer"
+                          className="p-1.5 rounded-lg border border-tv-primary/20 bg-tv-primary/10 text-tv-primary hover:text-tv-text hover:bg-blue-600 transition-colors cursor-pointer"
                           title="Acknowledge Alert"
                         >
                           <Check className="h-4 w-4" />
@@ -496,7 +496,7 @@ export function AlertsPage() {
                           {alert.status !== 'Resolved' && (
                             <button
                               onClick={() => handleResolve(alert.id)}
-                              className="p-1.5 rounded-lg border border-emerald-500/20 bg-emerald-500/10 text-tv-emerald hover:text-white hover:bg-tv-emerald transition-colors cursor-pointer"
+                              className="p-1.5 rounded-lg border border-emerald-500/20 bg-emerald-500/10 text-tv-emerald hover:text-tv-text hover:bg-tv-emerald transition-colors cursor-pointer"
                               title="Mark as Resolved"
                             >
                               <CheckCircle2 className="h-4 w-4" />
@@ -504,7 +504,7 @@ export function AlertsPage() {
                           )}
                           <button
                             onClick={() => handleDelete(alert.id)}
-                            className="p-1.5 rounded-lg border border-red-500/20 bg-red-500/10 text-red-400 hover:text-white hover:bg-red-500 transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg border border-red-500/20 bg-red-500/10 text-red-400 hover:text-tv-text hover:bg-red-500 transition-colors cursor-pointer"
                             title="Delete Alert"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -538,10 +538,10 @@ export function AlertsPage() {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 220 }}
-              className="relative z-10 flex h-full w-full max-w-md flex-col border-l border-white/[0.08] bg-[#1E293B] p-6 shadow-2xl focus:outline-none"
+              className="relative z-10 flex h-full w-full max-w-md flex-col border-l border-tv-border bg-tv-surface p-6 shadow-2xl focus:outline-none"
             >
               {/* Header */}
-              <div className="flex items-center justify-between border-b border-white/[0.06] pb-4">
+              <div className="flex items-center justify-between border-b border-tv-border pb-4">
                 <div>
                   <span className={`inline-flex rounded-lg px-2 py-0.5 text-[9px] font-bold ${getSeverityBadgeClass(selectedAlert.severity)}`}>
                     {selectedAlert.severity} Severity
@@ -550,7 +550,7 @@ export function AlertsPage() {
                 </div>
                 <button
                   onClick={() => setIsDetailOpen(false)}
-                  className="rounded-lg p-1.5 text-tv-muted hover:bg-white/[0.04] hover:text-tv-text"
+                  className="rounded-lg p-1.5 text-tv-muted hover:bg-black/[0.03] hover:text-tv-text"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -561,18 +561,18 @@ export function AlertsPage() {
                 {/* Description */}
                 <div>
                   <h5 className="font-bold text-tv-text uppercase tracking-wider text-[10px] mb-1">Description</h5>
-                  <p className="bg-white/[0.01] border border-white/[0.04] p-3 rounded-xl leading-relaxed text-tv-text font-medium">
+                  <p className="bg-black/[0.01] border border-tv-border p-3 rounded-xl leading-relaxed text-tv-text font-medium">
                     {selectedAlert.description}
                   </p>
                 </div>
 
                 {/* Metadata Grid */}
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-white/[0.01] border border-white/[0.04] p-3 rounded-xl">
+                  <div className="bg-black/[0.01] border border-tv-border p-3 rounded-xl">
                     <span className="block text-[10px] font-bold text-tv-muted uppercase">Roadway Segment</span>
                     <span className="block text-sm font-bold text-tv-primary mt-1">{selectedAlert.road_name}</span>
                   </div>
-                  <div className="bg-white/[0.01] border border-white/[0.04] p-3 rounded-xl">
+                  <div className="bg-black/[0.01] border border-tv-border p-3 rounded-xl">
                     <span className="block text-[10px] font-bold text-tv-muted uppercase">Coordinates</span>
                     <span className="block text-xs font-mono text-tv-text mt-1 flex items-center gap-1">
                       <MapPin className="h-3.5 w-3.5 text-tv-muted" />
@@ -583,7 +583,7 @@ export function AlertsPage() {
 
                 {/* Metrics */}
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-white/[0.01] border border-white/[0.04] p-3 rounded-xl">
+                  <div className="bg-black/[0.01] border border-tv-border p-3 rounded-xl">
                     <span className="block text-[10px] font-bold text-tv-muted uppercase">AI Prediction Score</span>
                     <span className="block text-sm font-bold text-tv-text mt-1">
                       {selectedAlert.prediction_score !== null 
@@ -592,7 +592,7 @@ export function AlertsPage() {
                       }
                     </span>
                   </div>
-                  <div className="bg-white/[0.01] border border-white/[0.04] p-3 rounded-xl">
+                  <div className="bg-black/[0.01] border border-tv-border p-3 rounded-xl">
                     <span className="block text-[10px] font-bold text-tv-muted uppercase">Traffic Volume</span>
                     <span className="block text-sm font-bold text-tv-text mt-1">
                       {selectedAlert.traffic_volume !== null 
@@ -604,7 +604,7 @@ export function AlertsPage() {
                 </div>
 
                 {/* Status and dates */}
-                <div className="space-y-3 bg-white/[0.01] border border-white/[0.04] p-4 rounded-xl">
+                <div className="space-y-3 bg-black/[0.01] border border-tv-border p-4 rounded-xl">
                   <div className="flex justify-between items-center">
                     <span className="font-bold text-tv-text uppercase text-[10px]">Status</span>
                     <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[9px] font-bold ${getStatusBadgeClass(selectedAlert.status)}`}>
@@ -641,11 +641,11 @@ export function AlertsPage() {
               </div>
 
               {/* Footer Actions */}
-              <div className="border-t border-white/[0.06] pt-4 space-y-2">
+              <div className="border-t border-tv-border pt-4 space-y-2">
                 {selectedAlert.status === 'Active' && (
                   <button
                     onClick={() => handleAcknowledge(selectedAlert.id)}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-500/10 border border-blue-500/20 py-2.5 text-xs font-bold text-blue-400 hover:bg-blue-600 hover:text-white transition-colors cursor-pointer"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-tv-primary/10 border border-tv-primary/20 py-2.5 text-xs font-bold text-tv-primary hover:bg-blue-600 hover:text-tv-text transition-colors cursor-pointer"
                   >
                     <Check className="h-4 w-4" />
                     <span>Acknowledge Alert</span>
@@ -657,7 +657,7 @@ export function AlertsPage() {
                     {selectedAlert.status !== 'Resolved' && (
                       <button
                         onClick={() => handleResolve(selectedAlert.id)}
-                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 py-2.5 text-xs font-bold text-tv-emerald hover:bg-tv-emerald hover:text-white transition-colors cursor-pointer"
+                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 py-2.5 text-xs font-bold text-tv-emerald hover:bg-tv-emerald hover:text-tv-text transition-colors cursor-pointer"
                       >
                         <CheckCircle2 className="h-4 w-4" />
                         <span>Resolve Incident</span>
@@ -666,7 +666,7 @@ export function AlertsPage() {
 
                     <button
                       onClick={() => handleDelete(selectedAlert.id)}
-                      className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-500/10 border border-red-500/20 py-2.5 text-xs font-bold text-red-400 hover:bg-red-500 hover:text-white transition-all cursor-pointer"
+                      className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-500/10 border border-red-500/20 py-2.5 text-xs font-bold text-red-400 hover:bg-red-500 hover:text-tv-text transition-all cursor-pointer"
                     >
                       <Trash2 className="h-4 w-4" />
                       <span>Delete Log Entry</span>
@@ -696,16 +696,16 @@ export function AlertsPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="relative z-10 w-full max-w-lg rounded-2xl border border-white/[0.08] bg-[#1E293B] p-6 shadow-2xl"
+              className="relative z-10 w-full max-w-lg rounded-2xl border border-tv-border bg-tv-surface p-6 shadow-2xl"
             >
-              <div className="flex items-center justify-between border-b border-white/[0.06] pb-3.5">
+              <div className="flex items-center justify-between border-b border-tv-border pb-3.5">
                 <span className="text-sm font-bold text-tv-text flex items-center gap-2">
                   <Shield className="h-5 w-5 text-tv-primary" />
                   Manual Traffic Advisory Creation
                 </span>
                 <button
                   onClick={() => setIsCreateOpen(false)}
-                  className="rounded-lg p-1.5 text-tv-muted hover:bg-white/[0.04] hover:text-tv-text"
+                  className="rounded-lg p-1.5 text-tv-muted hover:bg-black/[0.03] hover:text-tv-text"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -727,7 +727,7 @@ export function AlertsPage() {
                     <select
                       value={createForm.road_name}
                       onChange={e => handleRoadSelect(e.target.value)}
-                      className="w-full rounded-xl border border-white/[0.08] bg-[#0F172A] py-2.5 px-3 text-xs font-semibold text-tv-text outline-none focus:border-tv-primary"
+                      className="w-full rounded-xl border border-tv-border bg-tv-surface py-2.5 px-3 text-xs font-semibold text-tv-text outline-none focus:border-tv-primary"
                     >
                       <option value="">Select Monitored Road</option>
                       {roads.map(r => <option key={r} value={r}>{r}</option>)}
@@ -742,7 +742,7 @@ export function AlertsPage() {
                       placeholder="e.g. 53.627, -1.102"
                       value={createForm.location}
                       onChange={e => setCreateForm(prev => ({ ...prev, location: e.target.value }))}
-                      className="w-full rounded-xl border border-white/[0.08] bg-white/[0.02] py-2.5 px-3.5 text-xs font-semibold text-tv-text outline-none focus:border-tv-primary focus:bg-white/[0.04]"
+                      className="w-full rounded-xl border border-tv-border bg-black/[0.02] py-2.5 px-3.5 text-xs font-semibold text-tv-text outline-none focus:border-tv-primary focus:bg-black/[0.03]"
                     />
                   </div>
                 </div>
@@ -754,7 +754,7 @@ export function AlertsPage() {
                     <select
                       value={createForm.alert_type}
                       onChange={e => setCreateForm(prev => ({ ...prev, alert_type: e.target.value }))}
-                      className="w-full rounded-xl border border-white/[0.08] bg-[#0F172A] py-2.5 px-3 text-xs font-semibold text-tv-text outline-none focus:border-tv-primary"
+                      className="w-full rounded-xl border border-tv-border bg-tv-surface py-2.5 px-3 text-xs font-semibold text-tv-text outline-none focus:border-tv-primary"
                     >
                       {ALERT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
                     </select>
@@ -766,7 +766,7 @@ export function AlertsPage() {
                     <select
                       value={createForm.severity}
                       onChange={e => setCreateForm(prev => ({ ...prev, severity: e.target.value }))}
-                      className="w-full rounded-xl border border-white/[0.08] bg-[#0F172A] py-2.5 px-3 text-xs font-semibold text-tv-text outline-none focus:border-tv-primary"
+                      className="w-full rounded-xl border border-tv-border bg-tv-surface py-2.5 px-3 text-xs font-semibold text-tv-text outline-none focus:border-tv-primary"
                     >
                       {SEVERITIES.map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
@@ -781,7 +781,7 @@ export function AlertsPage() {
                     placeholder="Short summary of incident"
                     value={createForm.title}
                     onChange={e => setCreateForm(prev => ({ ...prev, title: e.target.value }))}
-                    className="w-full rounded-xl border border-white/[0.08] bg-white/[0.02] py-2.5 px-3.5 text-xs font-semibold text-tv-text outline-none focus:border-tv-primary focus:bg-white/[0.04]"
+                    className="w-full rounded-xl border border-tv-border bg-black/[0.02] py-2.5 px-3.5 text-xs font-semibold text-tv-text outline-none focus:border-tv-primary focus:bg-black/[0.03]"
                   />
                 </div>
 
@@ -793,7 +793,7 @@ export function AlertsPage() {
                     placeholder="Provide full description of delay, hazard, detours, speed restrictions..."
                     value={createForm.description}
                     onChange={e => setCreateForm(prev => ({ ...prev, description: e.target.value }))}
-                    className="w-full rounded-xl border border-white/[0.08] bg-white/[0.02] py-2.5 px-3.5 text-xs font-semibold text-tv-text outline-none focus:border-tv-primary focus:bg-white/[0.04]"
+                    className="w-full rounded-xl border border-tv-border bg-black/[0.02] py-2.5 px-3.5 text-xs font-semibold text-tv-text outline-none focus:border-tv-primary focus:bg-black/[0.03]"
                   />
                 </div>
 
@@ -809,7 +809,7 @@ export function AlertsPage() {
                       placeholder="e.g. 0.85"
                       value={createForm.prediction_score}
                       onChange={e => setCreateForm(prev => ({ ...prev, prediction_score: e.target.value }))}
-                      className="w-full rounded-xl border border-white/[0.08] bg-white/[0.02] py-2.5 px-3.5 text-xs font-semibold text-tv-text outline-none focus:border-tv-primary focus:bg-white/[0.04]"
+                      className="w-full rounded-xl border border-tv-border bg-black/[0.02] py-2.5 px-3.5 text-xs font-semibold text-tv-text outline-none focus:border-tv-primary focus:bg-black/[0.03]"
                     />
                   </div>
 
@@ -821,23 +821,23 @@ export function AlertsPage() {
                       placeholder="e.g. 1400"
                       value={createForm.traffic_volume}
                       onChange={e => setCreateForm(prev => ({ ...prev, traffic_volume: e.target.value }))}
-                      className="w-full rounded-xl border border-white/[0.08] bg-white/[0.02] py-2.5 px-3.5 text-xs font-semibold text-tv-text outline-none focus:border-tv-primary focus:bg-white/[0.04]"
+                      className="w-full rounded-xl border border-tv-border bg-black/[0.02] py-2.5 px-3.5 text-xs font-semibold text-tv-text outline-none focus:border-tv-primary focus:bg-black/[0.03]"
                     />
                   </div>
                 </div>
 
-                <div className="mt-4 pt-3.5 border-t border-white/[0.06] flex items-center justify-end gap-3">
+                <div className="mt-4 pt-3.5 border-t border-tv-border flex items-center justify-end gap-3">
                   <button
                     type="button"
                     onClick={() => setIsCreateOpen(false)}
-                    className="rounded-xl border border-white/[0.08] bg-transparent px-4 py-2.5 text-xs font-bold text-tv-text transition-colors hover:bg-white/[0.04] cursor-pointer"
+                    className="rounded-xl border border-tv-border bg-transparent px-4 py-2.5 text-xs font-bold text-tv-text transition-colors hover:bg-black/[0.03] cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={formSubmitting}
-                    className="flex items-center gap-2 rounded-xl bg-tv-primary px-5 py-2.5 text-xs font-bold text-white transition-all hover:bg-blue-600 disabled:opacity-50 cursor-pointer"
+                    className="flex items-center gap-2 rounded-xl bg-tv-primary px-5 py-2.5 text-xs font-bold text-tv-text transition-all hover:bg-blue-600 disabled:opacity-50 cursor-pointer"
                   >
                     {formSubmitting ? 'Publishing...' : 'Publish Advisory'}
                   </button>

@@ -16,7 +16,7 @@ export interface InputProps
 
 const stateStyles: Record<InputState, string> = {
   default:
-    'border-white/[0.08] hover:border-white/[0.14] focus-within:border-tv-primary focus-within:shadow-[0_0_0_3px_rgba(37,99,235,0.2)]',
+    'border-tv-border hover:border-tv-muted/40 focus-within:border-tv-primary focus-within:shadow-[0_0_0_3px_rgba(255,91,0,0.2)]',
   error:
     'border-red-500/60 focus-within:border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.2)]',
   success:

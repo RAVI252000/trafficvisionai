@@ -32,8 +32,8 @@ export function Button({
 
   const variantClasses =
     variant === 'primary'
-      ? 'bg-gradient-to-r from-tv-primary to-blue-500 text-white shadow-lg shadow-blue-500/20 hover:shadow-blue-500/35 hover:from-blue-500 hover:to-blue-400'
-      : 'border border-white/[0.12] bg-white/[0.04] text-tv-text backdrop-blur-sm hover:border-white/[0.20] hover:bg-white/[0.08]'
+      ? 'bg-gradient-to-r from-tv-primary to-amber-500 text-white shadow-lg shadow-tv-primary/20 hover:shadow-tv-primary/35 hover:from-amber-600 hover:to-tv-primary'
+      : 'border border-tv-border bg-black/[0.01] text-tv-text hover:border-tv-muted/40 hover:bg-black/[0.04]'
 
   return (
     <motion.div

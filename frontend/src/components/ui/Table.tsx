@@ -15,9 +15,9 @@ export interface TableProps<T> {
 
 export function Table<T>({ columns, data, keyExtractor, emptyMessage = 'No data available.' }: TableProps<T>) {
   return (
-    <div className="w-full overflow-x-auto rounded-xl border border-white/[0.08] bg-[#1E293B]">
+    <div className="w-full overflow-x-auto rounded-xl border border-tv-border bg-tv-surface">
       <table className="w-full text-left text-sm text-tv-text">
-        <thead className="border-b border-white/[0.08] bg-white/[0.02] text-xs uppercase text-tv-muted">
+        <thead className="border-b border-tv-border bg-black/[0.01] text-xs uppercase text-tv-muted">
           <tr>
             {columns.map((col) => (
               <th key={col.key} className="px-6 py-4 font-semibold tracking-wider">
@@ -26,7 +26,7 @@ export function Table<T>({ columns, data, keyExtractor, emptyMessage = 'No data 
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-white/[0.04]">
+        <tbody className="divide-y divide-tv-border">
           {data.length === 0 ? (
             <tr>
               <td colSpan={columns.length} className="px-6 py-8 text-center text-tv-muted">
@@ -35,7 +35,7 @@ export function Table<T>({ columns, data, keyExtractor, emptyMessage = 'No data 
             </tr>
           ) : (
             data.map((item) => (
-              <tr key={keyExtractor(item)} className="transition-colors hover:bg-white/[0.02]">
+              <tr key={keyExtractor(item)} className="transition-colors hover:bg-black/[0.01]">
                 {columns.map((col) => (
                   <td key={col.key} className="whitespace-nowrap px-6 py-4">
                     {col.render ? col.render(item) : String((item as any)[col.key] ?? '')}

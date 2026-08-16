@@ -127,7 +127,7 @@ export function TrafficMonitoringPage() {
         <button
           onClick={fetchLocations}
           disabled={loading}
-          className="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 text-xs font-semibold text-tv-text transition-all hover:bg-white/[0.08] cursor-pointer"
+          className="flex items-center gap-2 rounded-xl border border-tv-border bg-tv-surface px-4 py-2.5 text-xs font-semibold text-tv-text transition-all hover:bg-black/[0.03] cursor-pointer"
         >
           <RefreshCw className={`h-4 w-4 text-tv-primary ${loading ? 'animate-spin' : ''}`} />
           <span>Sync Checkpoints</span>
@@ -198,7 +198,7 @@ export function TrafficMonitoringPage() {
                     placeholder="Search checkpoints..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-tv-surface border border-white/[0.08] rounded-xl pl-9 pr-4 py-2 text-xs text-tv-text focus:outline-none focus:border-tv-primary"
+                    className="w-full bg-tv-surface border border-tv-border rounded-xl pl-9 pr-4 py-2 text-xs text-tv-text focus:outline-none focus:border-tv-primary"
                   />
                 </div>
 
@@ -214,7 +214,7 @@ export function TrafficMonitoringPage() {
                           className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between ${
                             isActive
                               ? 'bg-tv-primary/10 border-tv-primary text-tv-text shadow-lg'
-                              : 'bg-white/[0.01] border-white/[0.04] text-tv-muted hover:bg-white/[0.03] hover:text-tv-text'
+                              : 'bg-black/[0.01] border-tv-border text-tv-muted hover:bg-black/[0.03] hover:text-tv-text'
                           }`}
                         >
                           <div>
@@ -248,8 +248,8 @@ export function TrafficMonitoringPage() {
                   className="h-full w-full z-0"
                 >
                   <TileLayer
-                    url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    url="https://mt1.google.com/vt/lyrs=m,traffic&x={x}&y={y}&z={z}"
+                    attribution='&copy; Google Maps'
                   />
                   {locations.map((loc, idx) => {
                     const color = getCongestionColor(loc.congestion_index)
@@ -294,7 +294,7 @@ export function TrafficMonitoringPage() {
               {/* Right Column: Live External API Telemetry Widget */}
               <motion.div variants={itemVariants} className="lg:col-span-3 tv-glass p-5 rounded-2xl flex flex-col h-[550px] justify-between">
                 <div>
-                  <div className="flex items-center justify-between border-b border-white/[0.05] pb-3 mb-4">
+                  <div className="flex items-center justify-between border-b border-tv-border pb-3 mb-4">
                     <h4 className="text-xs font-bold text-tv-text uppercase tracking-wider flex items-center gap-1.5">
                       <Cpu className="h-4 w-4 text-tv-primary" />
                       Live External Flow
@@ -307,7 +307,7 @@ export function TrafficMonitoringPage() {
 
                   {!selectedRoad ? (
                     <div className="flex flex-col items-center justify-center text-center text-tv-muted py-16 px-4 space-y-3">
-                      <MapPin className="h-10 w-10 text-white/10 animate-bounce" />
+                      <MapPin className="h-10 w-10 text-black/10 animate-bounce" />
                       <span className="text-xs leading-relaxed">
                         Select a monitored checkpoint on the left panel or map to establish connection with external sensors.
                       </span>
@@ -334,13 +334,13 @@ export function TrafficMonitoringPage() {
 
                       {/* Speed Metrics */}
                       <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-white/[0.01] border border-white/[0.04] p-3 rounded-xl">
+                        <div className="bg-black/[0.01] border border-tv-border p-3 rounded-xl">
                           <span className="text-[10px] text-tv-muted block font-semibold">CURRENT SPEED</span>
                           <span className="text-lg font-bold text-tv-text block mt-1">
                             {liveFlow.current_speed} <span className="text-[10px] text-tv-muted font-normal">km/h</span>
                           </span>
                         </div>
-                        <div className="bg-white/[0.01] border border-white/[0.04] p-3 rounded-xl">
+                        <div className="bg-black/[0.01] border border-tv-border p-3 rounded-xl">
                           <span className="text-[10px] text-tv-muted block font-semibold">SPEED LIMIT</span>
                           <span className="text-lg font-bold text-tv-text block mt-1">
                             {liveFlow.free_flow_speed} <span className="text-[10px] text-tv-muted font-normal">km/h</span>
@@ -349,7 +349,7 @@ export function TrafficMonitoringPage() {
                       </div>
 
                       {/* Delays & Travel Times */}
-                      <div className="space-y-2 bg-white/[0.01] border border-white/[0.04] p-3 rounded-xl">
+                      <div className="space-y-2 bg-black/[0.01] border border-tv-border p-3 rounded-xl">
                         <span className="text-[10px] text-tv-muted block font-semibold">TRAVEL TIMES (1.5 km Segment)</span>
                         <div className="flex justify-between items-center text-xs mt-1">
                           <span className="text-tv-muted">Free Flow time:</span>
@@ -358,10 +358,10 @@ export function TrafficMonitoringPage() {
                         <div className="flex justify-between items-center text-xs">
                           <span className="text-tv-muted">Live Travel time:</span>
                           <span className={`font-bold ${
-                            liveFlow.congestion_index >= 60 ? 'text-red-400' : (liveFlow.congestion_index >= 30 ? 'text-tv-orange' : 'text-tv-emerald')
+                            liveFlow.congestion_index >= 60 ? 'text-red-500' : (liveFlow.congestion_index >= 30 ? 'text-tv-orange' : 'text-tv-emerald')
                           }`}>{liveFlow.current_travel_time_sec} sec</span>
                         </div>
-                        <div className="border-t border-white/[0.04] pt-2 flex justify-between items-center text-xs mt-2">
+                        <div className="border-t border-tv-border pt-2 flex justify-between items-center text-xs mt-2">
                           <span className="text-tv-muted">Segment delay:</span>
                           <span className="font-bold text-tv-text">
                             {Math.max(0, liveFlow.current_travel_time_sec - liveFlow.free_flow_travel_time_sec)} sec
@@ -375,7 +375,7 @@ export function TrafficMonitoringPage() {
                           <span className="text-tv-muted font-semibold">CONGESTION SCORE</span>
                           <span className="font-bold text-tv-text">{liveFlow.congestion_index}%</span>
                         </div>
-                        <div className="w-full bg-white/[0.08] h-1.5 rounded-full overflow-hidden">
+                        <div className="w-full bg-black/[0.08] h-1.5 rounded-full overflow-hidden">
                           <div
                             className="h-full rounded-full transition-all duration-500"
                             style={{
@@ -396,14 +396,14 @@ export function TrafficMonitoringPage() {
                 </div>
 
                 {liveFlow && (
-                  <div className="mt-4 pt-3 border-t border-white/[0.04] flex items-center justify-between text-[10px] text-tv-muted">
+                  <div className="mt-4 pt-3 border-t border-tv-border flex items-center justify-between text-[10px] text-tv-muted">
                     <span className="flex items-center gap-1">
                       <Clock className="h-3.5 w-3.5 text-tv-primary" />
                       Confidence: {Math.round(liveFlow.confidence * 100)}%
                     </span>
                     <button
                       onClick={() => fetchLiveFlow(selectedRoad)}
-                      className="text-tv-primary font-bold hover:text-blue-400 cursor-pointer flex items-center gap-1"
+                      className="text-tv-primary font-bold hover:text-orange-600 cursor-pointer flex items-center gap-1"
                     >
                       <RefreshCw className="h-3 w-3" /> Refresh
                     </button>

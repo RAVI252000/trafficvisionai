@@ -1,0 +1,98 @@
+{
+  "Silk Board Junction": {
+    "road_name": "Silk Board Junction",
+    "latitude": 12.9176,
+    "longitude": 77.6244,
+    "road_type_code": 1,
+    "road_type": "Major Junction",
+    "capacity": 2500.0
+  },
+  "Koramangala 100ft Rd": {
+    "road_name": "Koramangala 100ft Rd",
+    "latitude": 12.9345,
+    "longitude": 77.6268,
+    "road_type_code": 1,
+    "road_type": "Major Road",
+    "capacity": 1800.0
+  },
+  "Marathahalli Bridge": {
+    "road_name": "Marathahalli Bridge",
+    "latitude": 12.9591,
+    "longitude": 77.6974,
+    "road_type_code": 1,
+    "road_type": "Major Junction",
+    "capacity": 2200.0
+  },
+  "Majestic Junction": {
+    "road_name": "Majestic Junction",
+    "latitude": 12.9779,
+    "longitude": 77.5707,
+    "road_type_code": 1,
+    "road_type": "Major Junction",
+    "capacity": 2500.0
+  },
+  "Electronic City Phase 1": {
+    "road_name": "Electronic City Phase 1",
+    "latitude": 12.8489,
+    "longitude": 77.6601,
+    "road_type_code": 2,
+    "road_type": "Expressway",
+    "capacity": 3000.0
+  },
+  "Hebbal Flyover": {
+    "road_name": "Hebbal Flyover",
+    "latitude": 13.0358,
+    "longitude": 77.5978,
+    "road_type_code": 2,
+    "road_type": "Expressway Junction",
+    "capacity": 2800.0
+  },
+  "Tin Factory Junction": {
+    "road_name": "Tin Factory Junction",
+    "latitude": 13.0039,
+    "longitude": 77.6775,
+    "road_type_code": 1,
+    "road_type": "Major Junction",
+    "capacity": 2400.0
+  },
+  "Whitefield ITPL Rd": {
+    "road_name": "Whitefield ITPL Rd",
+    "latitude": 12.9866,
+    "longitude": 77.7300,
+    "road_type_code": 1,
+    "road_type": "Major Road",
+    "capacity": 1600.0
+  },
+  "Indiranagar 12th Main": {
+    "road_name": "Indiranagar 12th Main",
+    "latitude": 12.9719,
+    "longitude": 77.6412,
+    "road_type_code": 3,
+    "road_type": "Local Road",
+    "capacity": 1200.0
+  },
+  "MG Road": {
+    "road_name": "MG Road",
+    "latitude": 12.9738,
+    "longitude": 77.6119,
+    "road_type_code": 1,
+    "road_type": "Major Road",
+    "capacity": 2000.0
+  },
+  "Richmond Circle": {
+    "road_name": "Richmond Circle",
+    "latitude": 12.9600,
+    "longitude": 77.5900,
+    "road_type_code": 1,
+    "road_type": "Major Junction",
+    "capacity": 2200.0
+  },
+  "Yeshwanthpur Junction": {
+    "road_name": "Yeshwanthpur Junction",
+    "latitude": 13.0234,
+    "longitude": 77.5501,
+    "road_type_code": 1,
+    "road_type": "Major Junction",
+    "capacity": 2100.0
+  }
+}
