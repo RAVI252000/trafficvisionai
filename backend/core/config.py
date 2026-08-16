@@ -15,5 +15,6 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     RESEND_API_KEY: str | None = None
     USE_INDIAN_DATASET: bool = True
+    ALLOWED_ORIGINS: str = "http://localhost:5173,http://127.0.0.1:5173,http://localhost,http://localhost:80"
 
 settings = Settings()

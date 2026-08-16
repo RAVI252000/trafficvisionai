@@ -2,7 +2,7 @@ import axios from 'axios'
 import { STORAGE_KEY } from '../utils/constants'
 
 // Base URL points to the FastAPI backend server
-const API_URL = 'http://localhost:8000'
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 export const api = axios.create({
   baseURL: API_URL,

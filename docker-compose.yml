@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: trafficvision_db
+    restart: always
+    environment:
+      POSTGRES_DB: trafficvision
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d trafficvision"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: trafficvision_backend
+    restart: always
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@db:5432/trafficvision
+      - SECRET_KEY=09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7
+      - TOMTOM_API_KEY=${TOMTOM_API_KEY}
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - USE_INDIAN_DATASET=True
+      - ALLOWED_ORIGINS=http://localhost,http://localhost:5173,http://localhost:80,http://127.0.0.1
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        - VITE_API_URL=${VITE_API_URL:-http://localhost:8000}
+    container_name: trafficvision_frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

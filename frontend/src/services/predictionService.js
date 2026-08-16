@@ -83,7 +83,8 @@ export const predictionService = {
    * Get the download absolute URL for a specific report.
    */
   getDownloadReportUrl(reportId) {
-    return `http://localhost:8000/api/v1/reports/${reportId}/download`
+    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+    return `${baseUrl}/api/v1/reports/${reportId}/download`
   },
 
   /**

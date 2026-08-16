@@ -155,10 +155,104 @@ The model files are situated in `/ai_models`.
 ---
 
 ## 🔒 Default User Roles & Credentials
-Once the seed data is populated or the database is run, you can authenticate using the following built-in accounts (or register new ones):
+Once the database is initialized and seeded, you can authenticate using the following built-in accounts:
 
 | Role | Username | Password | Access Rights |
 | :--- | :--- | :--- | :--- |
-| **Admin** | `admin@trafficvision.ai` | `admin123` | Complete system control and configuration |
-| **Operator** | `operator@trafficvision.ai` | `operator123` | Manage events, view dashboards, trigger reports |
-| **Viewer** | `viewer@trafficvision.ai` | `viewer123` | Read-only dashboards and alerts |
+| **Admin** | `admin@trafficvision.ai` | `Admin@123` | Complete system control and configuration |
+| **Operator** | `operator@trafficvision.ai` | `Operator@123` | Manage events, view dashboards, trigger reports |
+
+---
+
+## 🐳 Docker Setup & Running with Compose
+
+TrafficVision AI is fully containerized and can be launched in production using Docker Compose.
+
+### Local Development Docker Run
+
+1. Make sure **Docker Desktop** is installed and running.
+2. In the root directory, configure your variables by copying `.env.example` to `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+3. Build the backend and frontend containers:
+   ```bash
+   docker compose build
+   ```
+4. Spin up the containers (Database, FastAPI Backend, React Frontend served via Nginx):
+   ```bash
+   docker compose up -d
+   ```
+5. View running container logs:
+   ```bash
+   docker compose logs -f
+   ```
+6. The application is served on:
+   - **Frontend UI**: `http://localhost` (Port 80)
+   - **Backend API Docs**: `http://localhost:8000/docs`
+7. Tear down the local deployment:
+   ```bash
+   docker compose down
+   ```
+
+---
+
+## ☁️ Cloud Deployment (AWS / Azure)
+
+### Architecture Diagram
+```
+                Users (Browsers)
+                      |
+                      ↓ [HTTP/HTTPS Port 80/443]
+           Cloud Frontend (Nginx/S3+CloudFront)
+                      |
+                      ↓ [API Calls Port 8000/443]
+           FastAPI Backend (ECS / App Service)
+                      |
+            ┌─────────┴─────────┐
+            ↓                   ↓
+    RDS PostgreSQL DB        ML Model File
+```
+
+### Option A: AWS Deployment via EC2 (Easiest)
+1. **Launch Instance**: Create an AWS EC2 instance (Ubuntu Server t3.medium or larger). Open ports `80` (Frontend) and `8000` (Backend API) in the Security Groups.
+2. **Install Docker**: Install Docker and Docker Compose on the instance:
+   ```bash
+   sudo apt-get update
+   sudo apt-get install -y docker.io docker-compose
+   ```
+3. **Deploy Code**: Clone the repository onto the instance.
+4. **Environment Setup**: Copy `.env.example` to `.env`. Configure your real credentials, TomTom API key, and set `VITE_API_URL` to point to the instance's public IP/domain (e.g. `http://your-ec2-ip:8000`).
+5. **Start Services**: Run the compose build:
+   ```bash
+   sudo docker-compose up -d --build
+   ```
+
+### Option B: AWS Enterprise Deployment (ECS + RDS)
+1. **Database Setup**: Create an **Amazon RDS PostgreSQL** instance. Set up a security group to accept incoming connection on port `5432` only from the ECS Tasks security group.
+2. **Docker Registry**: Create two repositories on **Amazon ECR** (Elastic Container Registry) for `trafficvision-frontend` and `trafficvision-backend`.
+3. **Build & Push**:
+   ```bash
+   # Log in to ECR
+   aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin <your-aws-account-id>.dkr.ecr.us-east-1.amazonaws.com
+   
+   # Build with production API URL
+   docker build -t trafficvision-frontend -f frontend/Dockerfile --build-arg VITE_API_URL=http://your-backend-load-balancer-url ./
+   docker build -t trafficvision-backend -f backend/Dockerfile ./
+   
+   # Tag & Push
+   docker tag trafficvision-frontend:latest <your-aws-account-id>.dkr.ecr.us-east-1.amazonaws.com/trafficvision-frontend:latest
+   docker push <your-aws-account-id>.dkr.ecr.us-east-1.amazonaws.com/trafficvision-frontend:latest
+   ```
+4. **ECS Cluster Setup**: Create an ECS Fargate cluster.
+5. **Task Definitions**: Create task definitions pointing to your ECR image paths. Pass config properties (like `DATABASE_URL` pointing to RDS) as secure environment variables.
+6. **Load Balancing**: Add an AWS Application Load Balancer (ALB) to forward port `80` traffic to the frontend task and port `8000` to the backend task.
+
+---
+
+## 🔒 Production Security Checklist
+- [ ] Set `USE_INDIAN_DATASET=True` for Bengaluru live telemetry.
+- [ ] Set a strong JWT `SECRET_KEY` env variable.
+- [ ] Configure `ALLOWED_ORIGINS` to accept only your custom web domains.
+- [ ] Ensure the PostgreSQL database container `db` is not exposed publicly (restrict port `5432` to the docker local bridge or internal virtual network).
+
