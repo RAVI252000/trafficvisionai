@@ -9,7 +9,7 @@ alembic upgrade head
 
 # Seed roles
 echo "Seeding database..."
-python database/seed.py
+PYTHONPATH=. python -m database.seed
 
 # Start FastAPI
 echo "Starting FastAPI server..."
