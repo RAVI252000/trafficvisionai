@@ -81,13 +81,21 @@ class PredictionService:
             # Direction code mapping (E = 2)
             direction_code = 2
 
+            # Use UK coordinates for model features if USE_INDIAN_DATASET is True
+            # to keep input inside the model's trained boundaries
+            model_lat = latitude
+            model_lng = longitude
+            if settings.USE_INDIAN_DATASET:
+                model_lat = 53.6278
+                model_lng = -1.1029
+
             features_df = pd.DataFrame([{
                 "hour": hour,
                 "day_of_week": day_of_week,
                 "month": month,
                 "is_weekend": is_weekend,
-                "latitude": latitude,
-                "longitude": longitude,
+                "latitude": model_lat,
+                "longitude": model_lng,
                 "road_type_code": road_type_code,
                 "direction_code": direction_code
             }])
@@ -227,13 +235,18 @@ class PredictionService:
         rows = []
         for r in roads:
             meta = self.road_metadata[r]
+            model_lat = meta.get("latitude", 51.5074)
+            model_lng = meta.get("longitude", -0.1278)
+            if settings.USE_INDIAN_DATASET:
+                model_lat = 53.6278
+                model_lng = -1.1029
             rows.append({
                 "hour": hour,
                 "day_of_week": day_of_week,
                 "month": month,
                 "is_weekend": is_weekend,
-                "latitude": meta.get("latitude", 51.5074),
-                "longitude": meta.get("longitude", -0.1278),
+                "latitude": model_lat,
+                "longitude": model_lng,
                 "road_type_code": meta.get("road_type_code", 1),
                 "direction_code": direction_code
             })
