@@ -9,6 +9,7 @@ import {
   Search, ShieldCheck
 } from 'lucide-react'
 import { analyticsService } from '../../services/analyticsService'
+import { predictionService } from '../../services/predictionService'
 
 const REGIONS = [
   'All', 'London', 'South East', 'South West', 'North West', 'East of England',
@@ -27,6 +28,7 @@ export function TrendsPage() {
   const [activeTab, setActiveTab] = useState<'hourly' | 'daily' | 'weekly' | 'monthly'>('hourly')
 
   // Forecast Road Search State
+  const [roads, setRoads] = useState<string[]>([])
   const [forecastRoad, setForecastRoad] = useState<string>('A1')
   const [forecastLoading, setForecastLoading] = useState<boolean>(false)
   const [forecastData, setForecastData] = useState<any>(null)
@@ -59,6 +61,23 @@ export function TrendsPage() {
       setForecastLoading(false)
     }
   }
+
+  // Load list of available roads on mount
+  useEffect(() => {
+    const fetchRoads = async () => {
+      try {
+        const roadsList = await predictionService.getAvailableRoads()
+        setRoads(roadsList)
+        if (roadsList.length > 0) {
+          const defaultRoad = roadsList.includes('A1') ? 'A1' : roadsList[0]
+          setForecastRoad(defaultRoad)
+        }
+      } catch (error) {
+        console.error('Failed to load roads:', error)
+      }
+    }
+    fetchRoads()
+  }, [])
 
   useEffect(() => {
     fetchTrendsData()
@@ -232,16 +251,24 @@ export function TrendsPage() {
                 <p className="text-xs text-tv-muted">Search predictions for a specific segment to overlay hourly speeds.</p>
               </div>
 
-              {/* Search input */}
-              <div className="relative">
-                <Search className="absolute left-3 top-2.5 h-4 w-4 text-tv-muted" />
-                <input
-                  type="text"
-                  placeholder="Enter road name e.g. A1..."
+              {/* Search dropdown select */}
+              <div className="relative flex items-center">
+                <select
                   value={forecastRoad}
                   onChange={(e) => setForecastRoad(e.target.value)}
-                  className="rounded-xl border border-tv-border bg-tv-surface pl-9 pr-4 py-2 text-sm text-tv-text focus:border-tv-primary focus:outline-none"
-                />
+                  className="rounded-xl border border-tv-border bg-tv-surface pl-4 pr-10 py-2 text-sm text-tv-text focus:border-tv-primary focus:outline-none appearance-none cursor-pointer"
+                >
+                  {roads.map((road) => (
+                    <option key={road} value={road} className="bg-tv-bg text-tv-text">
+                      {road}
+                    </option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute right-3 flex items-center text-tv-muted">
+                  <svg className="h-4 w-4 fill-current text-tv-muted" viewBox="0 0 20 20">
+                    <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                  </svg>
+                </div>
               </div>
             </div>
 
