@@ -19,13 +19,13 @@ from services.reports_service import reports_service
 
 class ReportsService:
     def get_reports_list(self, db: Session, user_id: int) -> list:
-        return db.query(TrafficReport).filter(TrafficReport.user_id == user_id).order_by(TrafficReport.created_at.desc()).all()
+        return db.query(TrafficReport).order_by(TrafficReport.created_at.desc()).all()
 
     def get_report_by_id(self, db: Session, report_id: int, user_id: int) -> TrafficReport:
-        return db.query(TrafficReport).filter(TrafficReport.id == report_id, TrafficReport.user_id == user_id).first()
+        return db.query(TrafficReport).filter(TrafficReport.id == report_id).first()
 
     def get_reports_kpi_summary(self, db: Session, user_id: int) -> dict:
-        reports = db.query(TrafficReport).filter(TrafficReport.user_id == user_id).all()
+        reports = db.query(TrafficReport).all()
         total = len(reports)
         daily = sum(1 for r in reports if r.report_type == "Daily Report")
         weekly = sum(1 for r in reports if r.report_type == "Weekly Report")
