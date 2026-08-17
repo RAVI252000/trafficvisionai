@@ -13,10 +13,7 @@ const CATEGORIES = [
 ]
 const PRIORITIES = ['All', 'Low', 'Medium', 'High', 'Critical']
 const STATUSES = ['All', 'Pending', 'Accepted', 'Implemented', 'Dismissed']
-const REGIONS = [
-  'All', 'London', 'South East', 'South West', 'North West', 'East of England',
-  'West Midlands', 'East Midlands', 'Yorkshire and The Humber', 'North East', 'Scotland', 'Wales'
-]
+const REGIONS = ['All', 'Karnataka']
 
 export function RecommendationsPage() {
   const { user } = useAuth()

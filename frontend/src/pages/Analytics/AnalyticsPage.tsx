@@ -12,16 +12,9 @@ import { analyticsService } from '../../services/analyticsService'
 import { useAuth } from '../../hooks/useAuth'
 
 // Centralized filter options
-const REGIONS = [
-  'All', 'London', 'South East', 'South West', 'North West', 'East of England',
-  'West Midlands', 'East Midlands', 'Yorkshire and The Humber', 'North East', 'Scotland', 'Wales'
-]
+const REGIONS = ['All', 'Karnataka']
 
-const LOCAL_AUTHORITIES = [
-  'All', 'Aberdeenshire', 'Lambeth', 'Newcastle upon Tyne', 'Tower Hamlets', 'St. Helens',
-  'Worcestershire', 'Lewisham', 'Camden', 'Kingston upon Hull, City of', 'Stockport',
-  'Bedford', 'Swansea', 'Somerset', 'Cardiff'
-]
+const LOCAL_AUTHORITIES = ['All', 'BBMP (Bengaluru)']
 
 const ROAD_TYPES = ['All', 'Major', 'Minor']
 const TIME_PERIODS = ['All', 'Morning', 'Afternoon', 'Evening', 'Night']

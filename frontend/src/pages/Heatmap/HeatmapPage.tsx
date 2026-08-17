@@ -39,10 +39,7 @@ function ChangeMapView({ center, zoom }: { center: [number, number], zoom: numbe
   return null
 }
 
-const REGIONS = [
-  'All', 'London', 'South East', 'South West', 'North West', 'East of England',
-  'West Midlands', 'East Midlands', 'Yorkshire and The Humber', 'North East', 'Scotland', 'Wales'
-]
+const REGIONS = ['All', 'Karnataka']
 const ROAD_TYPES = ['All', 'Major', 'Minor']
 const CONGESTION_LEVELS = ['All', 'Low', 'Moderate', 'High', 'Severe']
 

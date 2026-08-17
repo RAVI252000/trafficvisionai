@@ -11,10 +11,7 @@ import {
 import { analyticsService } from '../../services/analyticsService'
 import { predictionService } from '../../services/predictionService'
 
-const REGIONS = [
-  'All', 'London', 'South East', 'South West', 'North West', 'East of England',
-  'West Midlands', 'East Midlands', 'Yorkshire and The Humber', 'North East', 'Scotland', 'Wales'
-]
+const REGIONS = ['All', 'Karnataka']
 const ROAD_TYPES = ['All', 'Major', 'Minor']
 
 export function TrendsPage() {
