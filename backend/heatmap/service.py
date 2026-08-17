@@ -64,7 +64,7 @@ class HeatmapService:
                     "longitude": meta.get("longitude", -0.1278),
                     "congestion_index": int(round(congestion_pct)),
                     "predicted_volume": int(round(pred_volume)),
-                    "region": meta.get("region", "All")
+                    "region": "Karnataka" if settings.USE_INDIAN_DATASET else meta.get("region", "All")
                 })
         else:
             # Fallback mock status
