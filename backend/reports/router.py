@@ -46,7 +46,7 @@ def get_reports_summary(
 def generate_report(
     payload: AIReportCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_operator_user)
+    current_user: User = Depends(get_admin_user)
 ):
     """
     Generate and save a new AI traffic analysis report.

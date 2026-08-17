@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Response
 from typing import Optional, Dict, Any, List
 from sqlalchemy.orm import Session
 from database.database import get_db
-from core.dependencies import get_current_active_user
+from core.dependencies import get_current_active_user, get_admin_user
 from models.user import User
 from models.report import TrafficReport
 from schemas.report import ReportCreate, ReportResponse
@@ -39,7 +39,7 @@ def get_traffic_prediction_reports(
 def generate_report(
     payload: ReportCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    current_user: User = Depends(get_admin_user)
 ):
     """
     Generate and save a traffic prediction report based on filters.
