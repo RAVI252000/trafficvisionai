@@ -182,47 +182,6 @@ class PredictionService:
         if not self.road_metadata:
             return []
 
-        # If USE_INDIAN_DATASET is True, fetch actual live traffic from the TomTom Traffic API
-        if settings.USE_INDIAN_DATASET:
-            from services.traffic_api_service import traffic_api_service
-            status_list = []
-            for road_name, meta in self.road_metadata.items():
-                lat = meta.get("latitude", 12.9716)
-                lon = meta.get("longitude", 77.5946)
-                
-                # Fetch actual live flow from TomTom (or coordinates-based simulation fallback if no API key)
-                live_flow = traffic_api_service.fetch_live_traffic_flow(lat, lon)
-                import time
-                time.sleep(0.25)
-                
-                congestion_pct = live_flow.get("congestion_index", 0)
-                current_speed = live_flow.get("current_speed", 40)
-                capacity = meta.get("capacity", 2000.0)
-                
-                # Back-calculate volume based on congestion percentage
-                pred_volume = float((congestion_pct / 100.0) * capacity)
-                
-                if congestion_pct < 30.0:
-                    status = "CLEAR"
-                elif congestion_pct < 60.0:
-                    status = "MODERATE"
-                elif congestion_pct < 85.0:
-                    status = "HEAVY"
-                else:
-                    status = "BLOCKED"
-                
-                status_list.append({
-                    "road_name": road_name,
-                    "road_type": meta.get("road_type", "Major Road"),
-                    "latitude": lat,
-                    "longitude": lon,
-                    "congestion_index": int(round(congestion_pct)),
-                    "congestion_status": status,
-                    "predicted_volume": max(100, int(round(pred_volume))),
-                    "confidence": live_flow.get("confidence", 0.90)
-                })
-            return status_list
-
         now = datetime.now()
         hour = now.hour
         day_of_week = now.weekday()
