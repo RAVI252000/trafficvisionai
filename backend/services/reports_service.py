@@ -52,15 +52,12 @@ class ReportsService:
                     self.df['region_id'] = 1
                     self.df['local_authority_id'] = 1
                     
-                    lats = [self.road_metadata[r]["latitude"] for r in road_choices]
-                    lngs = [self.road_metadata[r]["longitude"] for r in road_choices]
-                    road_types = [self.road_metadata[r]["road_type"] for r in road_choices]
-                    road_type_codes = [self.road_metadata[r]["road_type_code"] for r in road_choices]
-                    
-                    self.df['latitude'] = lats
-                    self.df['longitude'] = lngs
-                    self.df['road_type'] = road_types
-                    self.df['road_type_code'] = road_type_codes
+                    # Vectorized mapping for maximum performance (eliminates slow Python loops)
+                    meta_df = pd.DataFrame.from_dict(self.road_metadata, orient='index')
+                    self.df['latitude'] = self.df['road_name'].map(meta_df['latitude'])
+                    self.df['longitude'] = self.df['road_name'].map(meta_df['longitude'])
+                    self.df['road_type'] = self.df['road_name'].map(meta_df['road_type'])
+                    self.df['road_type_code'] = self.df['road_name'].map(meta_df['road_type_code'])
                     
                     print("ReportsService successfully mapped dataset to Indian Bengaluru region.")
             except Exception as e:
