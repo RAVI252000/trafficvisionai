@@ -191,22 +191,6 @@ export function Navbar({ onMenuOpen }: NavbarProps) {
                     </div>
                   </div>
                   <div className="mt-1 space-y-0.5">
-                    <button
-                      onClick={() => {
-                        setProfileOpen(false)
-                        navigate(ROUTES.PROFILE)
-                      }}
-                      className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-xs font-semibold text-tv-muted transition-colors hover:bg-black/[0.02] hover:text-tv-text"
-                    >
-                      <User className="h-4 w-4 text-tv-primary" />
-                      My Profile
-                    </button>
-                    <button className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-xs font-semibold text-tv-muted transition-colors hover:bg-black/[0.02] hover:text-tv-text">
-                      <HelpCircle className="h-4 w-4 text-tv-primary" />
-                      Help &amp; Docs
-                    </button>
-                    
-                    <div className="h-px bg-tv-border my-1" />
                     
                     <button
                       onClick={() => logout()}
