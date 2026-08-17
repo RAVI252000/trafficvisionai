@@ -7,6 +7,7 @@ from models.recommendation import Recommendation, RecommendationStatus, Recommen
 from models.alert import Alert, AlertType
 from services.prediction_service import prediction_service
 from services.reports_service import reports_service
+from core.config import settings
 
 class RecommendationService:
     def get_recommendations(
@@ -72,6 +73,12 @@ class RecommendationService:
         AI rule-based engine that evaluates live predictions, safety alerts,
         and congestion timelines to generate prioritized, actionable recommendations.
         """
+        # 0. Clean up stale recommendations from different datasets
+        if prediction_service.road_metadata:
+            active_roads = set(prediction_service.road_metadata.keys())
+            db.query(Recommendation).filter(Recommendation.affected_road.notin_(active_roads)).delete(synchronize_session=False)
+            db.commit()
+
         # 1. Fetch current live predictions
         try:
             predictions = prediction_service.get_monitoring_status_batch()
@@ -122,7 +129,7 @@ class RecommendationService:
             
             # Lookup region from metadata
             meta = prediction_service.road_metadata.get(road, {})
-            region = meta.get("region", "London")
+            region = meta.get("region", "Karnataka" if settings.USE_INDIAN_DATASET else "London")
 
             # Severe Congestion (Index > 80%)
             if congestion_idx >= 80:
@@ -170,10 +177,10 @@ class RecommendationService:
         # Rule 2: Evaluate Active Safety Alerts
         for alert in active_alerts:
             road = alert.road_name
-            region = "London"
+            region = "Karnataka" if settings.USE_INDIAN_DATASET else "London"
             for k, meta in prediction_service.road_metadata.items():
                 if k == road:
-                    region = meta.get("region", "London")
+                    region = meta.get("region", "Karnataka" if settings.USE_INDIAN_DATASET else "London")
                     break
 
             if alert.alert_type == AlertType.ACCIDENT:
@@ -220,7 +227,7 @@ class RecommendationService:
 
             for road in congested_list:
                 meta = prediction_service.road_metadata.get(road, {})
-                region = meta.get("region", "London")
+                region = meta.get("region", "Karnataka" if settings.USE_INDIAN_DATASET else "London")
                 
                 # Infrastructure capacity increase
                 add_rec(
