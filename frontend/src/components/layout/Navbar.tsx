@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useLocation, useNavigate, NavLink } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Menu, Bell, Shield, ChevronDown, User, LogOut, Clock, HelpCircle, Activity } from 'lucide-react'
+import { Menu, Bell, Shield, ChevronDown, LogOut, Clock, Activity } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { ROUTES } from '../../utils/constants'
 import { alertService } from '../../services/alertService'

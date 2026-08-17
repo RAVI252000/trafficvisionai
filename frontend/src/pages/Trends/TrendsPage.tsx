@@ -6,7 +6,7 @@ import {
 import {
   Activity, Sliders, RefreshCw, Sparkles, TrendingUp,
   AlertCircle, CheckCircle2, ArrowUpRight, ArrowDownRight,
-  Search, ShieldCheck
+  ShieldCheck
 } from 'lucide-react'
 import { analyticsService } from '../../services/analyticsService'
 import { predictionService } from '../../services/predictionService'
