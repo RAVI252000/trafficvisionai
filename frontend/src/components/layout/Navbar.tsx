@@ -5,6 +5,7 @@ import { Menu, Bell, Shield, ChevronDown, User, LogOut, Clock, HelpCircle, Activ
 import { useAuth } from '../../hooks/useAuth'
 import { ROUTES } from '../../utils/constants'
 import { alertService } from '../../services/alertService'
+import { isAdmin } from '../../utils/rbac'
 
 interface NavbarProps {
   onMenuOpen: () => void
@@ -35,6 +36,10 @@ export function Navbar({ onMenuOpen }: NavbarProps) {
     { name: 'Advisory', path: ROUTES.RECOMMENDATIONS },
     { name: 'Reports', path: ROUTES.REPORTS },
   ]
+
+  if (user && isAdmin(user.role)) {
+    navItems.push({ name: 'Admin', path: ROUTES.ADMIN })
+  }
 
   const fetchActiveAlerts = async () => {
     try {
