@@ -3,6 +3,7 @@ import json
 import joblib
 import pandas as pd
 from datetime import datetime
+from core.config import settings
 
 class PredictionService:
     def __init__(self):
@@ -18,7 +19,6 @@ class PredictionService:
         self.load_artifacts()
 
     def load_artifacts(self):
-        from core.config import settings
         if os.path.exists(self.model_path):
             self.model = joblib.load(self.model_path)
             print("Backend prediction service successfully loaded traffic model.")
@@ -176,7 +176,6 @@ class PredictionService:
         }
 
     def get_monitoring_status_batch(self):
-        from core.config import settings
         if self.model is None or not self.road_metadata:
             self.load_artifacts()
             
