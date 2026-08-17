@@ -29,7 +29,7 @@ export function TrendsPage() {
 
   // Forecast Road Search State
   const [roads, setRoads] = useState<string[]>([])
-  const [forecastRoad, setForecastRoad] = useState<string>('A1')
+  const [forecastRoad, setForecastRoad] = useState<string>('')
   const [forecastLoading, setForecastLoading] = useState<boolean>(false)
   const [forecastData, setForecastData] = useState<any>(null)
 

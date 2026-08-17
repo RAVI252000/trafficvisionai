@@ -1,6 +1,7 @@
 import pandas as pd
 from datetime import datetime
 from services.prediction_service import prediction_service
+from core.config import settings
 
 class HeatmapService:
     def get_heatmap_points(self, filters: dict) -> list:
@@ -30,13 +31,18 @@ class HeatmapService:
             rows = []
             for r in roads:
                 meta = prediction_service.road_metadata[r]
+                model_lat = meta.get("latitude", 51.5074)
+                model_lng = meta.get("longitude", -0.1278)
+                if settings.USE_INDIAN_DATASET:
+                    model_lat = 53.6278
+                    model_lng = -1.1029
                 rows.append({
                     "hour": hour,
                     "day_of_week": day_of_week,
                     "month": month,
                     "is_weekend": is_weekend,
-                    "latitude": meta.get("latitude", 51.5074),
-                    "longitude": meta.get("longitude", -0.1278),
+                    "latitude": model_lat,
+                    "longitude": model_lng,
                     "road_type_code": meta.get("road_type_code", 1),
                     "direction_code": direction_code
                 })
